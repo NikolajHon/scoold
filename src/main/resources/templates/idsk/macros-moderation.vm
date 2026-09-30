@@ -1,0 +1,249 @@
+## =====================================================================
+##  Platforma SOS – makrá pre moderovanie (nahlásenia, verzie, spätná väzba)
+##  Knižnica: idsk/macros-moderation.vm (agent "moderation").
+##  #idskreportform sa používa aj v AJAX partiali reports.vm (modálne okno),
+##  preto musí byť v knižnici, nie inline v stránke.
+## =====================================================================
+
+################# FORMULÁR NAHLÁSENIA (modálne okno) #####################
+## Triedy/mená zachované pre scoold.js: form.create-report-form (submitFormBind),
+## polia subType/description/parentid/link, odkaz .modal-close (zatvorenie okna).
+#macro(idskreportform $rtype $rparentid $rlink)
+<form method="post" class="create-report-form sos-report-form" action="$reportslink">
+	#sectoken(false)
+	<h2 class="govuk-heading-m">$!lang.get("reportproblem")</h2>
+	<div class="govuk-form-group">
+		<label class="govuk-label" for="sos-report-subtype">$!lang.get("reports.category")</label>
+		<select class="govuk-select" id="sos-report-subtype" name="subType">
+			#foreach($_rt in $reportTypes)
+			<option value="$!_rt.name()" #if($_rt.name() == "OTHER")selected="selected"#end>$!lang.get("reports.$_rt.toString()")</option>
+			#end
+		</select>
+	</div>
+	<div class="govuk-form-group">
+		<label class="govuk-label" for="sos-report-description">$!lang.get("reports.description")</label>
+		<p class="govuk-hint" id="sos-report-description-hint">$!lang.get("idsk.reports.form.hint")</p>
+		<textarea class="govuk-textarea" id="sos-report-description" name="description" rows="4" maxlength="2000" aria-describedby="sos-report-description-hint"></textarea>
+	</div>
+	<input type="hidden" name="parentid" value="$!rparentid">
+	#if ($rlink && !$rlink.isEmpty())
+	<input type="hidden" name="link" value="$!rlink">
+	#end
+	<div class="sos-form-actions">
+		<button id="sendreport-btn" type="submit" class="govuk-button govuk-button__basic" data-module="govuk-button">$!lang.get('send')</button>
+		<a href="#main-modal" class="govuk-link modal-action modal-close">$!lang.get('close')</a>
+	</div>
+</form>
+#end
+
+################# NAHLÁSENIE (správa nahlásení) #####################
+## <li class="reportbox"> – scoold.js: closeReport() pracuje s .reportbox, .report-closed-icon,
+## .report-close-btn (zároveň .editlink → prepína .viewbox/.editbox), .approve-btn, .report-open-btn,
+## a.delete-report, form.close-report-form, .canceledit.
+#macro(idskreportbox $showreport)
+	#set($_rtypeKey = "reports.other")
+	#if($showreport.subType)#set($_rtypeKey = "reports.$!{showreport.subType.toLowerCase()}")#end
+	#if($showreport.closed)#set($_hideClosed = "")#set($_hideOpenState = "hide")#else#set($_hideClosed = "hide")#set($_hideOpenState = "")#end
+	<li class="reportbox sos-report #if($showreport.closed)closed-report#end" id="report-$!showreport.id">
+		<div class="sos-report__head">
+			<div class="sos-report__title">
+				<p class="sos-report__labels">
+					<span class="sos-status sos-status--neutral">$!lang.get($_rtypeKey)</span>
+					<span class="sos-status sos-status--success report-closed-icon $!{_hideClosed}">&#10003; $!lang.get('idsk.closed')</span>
+				</p>
+				<h2 class="govuk-heading-s sos-mb-0">
+					#if($showreport.description && !$showreport.description.trim().isEmpty())
+						$showreport.description
+					#else
+						$!lang.get($_rtypeKey)
+					#end
+				</h2>
+			</div>
+			#if($showreport.link && $showreport.link.length() > 1)
+				<a href="$!showreport.link" class="govuk-button govuk-button--sec sos-report__goto" role="button">$!lang.get('reports.goto')</a>
+			#end
+		</div>
+
+		<div class="viewbox">
+			#if($showreport.properties && $showreport.properties.size() > 0)
+				<dl class="sos-report__props">
+				#foreach($key in $showreport.properties.keySet())
+					#if($key != "key" && $!showreport.properties.get($key))
+						<div><dt>$!key</dt><dd><code>$!showreport.properties.get($key)</code></dd></div>
+					#end
+				#end
+				</dl>
+			#end
+
+			#if ($showreport.name && $showreport.content && !$showreport.content.isEmpty())
+				<div class="sos-report__content">
+					#if(!$showreport.name.startsWith("ParaObject "))
+						<p class="govuk-body sos-mb-0"><strong>$showreport.name</strong></p>
+					#end
+					## obsah je HTML vygenerované serverom (markdownToHtml) – rovnako ako v pôvodnej šablóne
+					#set($_showBody = $!showreport.content)
+					<div class="postbody">$!_showBody</div>
+				</div>
+			#end
+
+			#if ($showreport.solution && !$showreport.solution.isEmpty())#set($_hideSol = "")#else#set($_hideSol = "hide")#end
+			<p class="govuk-body $!{_hideSol}">
+				<strong>$!lang.get('reports.actionstaken'):</strong>
+				<span class="report-solution-text">$!showreport.solution</span>
+			</p>
+
+			<div class="sos-post-meta">
+				<span>$!lang.get('idsk.reports.reportedby'):
+					#if ($showreport.creatorid)
+						<a class="govuk-link" href="$profilelink/$!showreport.creatorid">$!showreport.authorName</a>
+					#else
+						$!showreport.authorName
+					#end
+				</span>
+				<span>#formatdate($!showreport.timestamp "")</span>
+			</div>
+
+			<div class="sos-post-actions" aria-label="$!lang.get('idsk.actions')">
+				<a href="#" class="govuk-link editlink report-close-btn $!{_hideOpenState}">$!lang.get("idsk.reports.close")</a>
+				#if($showreport.parentid && !$showreport.parentid.isEmpty() && $lang.get("reports.awaitingapproval") == $showreport.description)
+					<a href="$reportslink/$!showreport.id/approve" class="govuk-link approve-btn $!{_hideOpenState}">$!lang.get("posts.approve")</a>
+				#end
+				#if($showreport.subType && $showreport.subType.toLowerCase() == "spam")
+					<a href="$reportslink/$!showreport.id/confirm-spam?spam=false" class="govuk-link approve-btn $!{_hideOpenState}">$!lang.get("idsk.reports.notspam")</a>
+					<a href="$reportslink/$!showreport.id/confirm-spam?spam=true" class="govuk-link approve-btn sos-link-danger $!{_hideOpenState}">$!lang.get("idsk.reports.confirmspam")</a>
+				#end
+				<a href="$reportslink/$!showreport.id/open" class="govuk-link report-open-btn $!{_hideClosed}">$!lang.get("reopen")</a>
+				#if ($isAdmin)
+					<a href="$reportslink/$!showreport.id/delete" class="govuk-link delete-report sos-link-danger">$!lang.get("delete")</a>
+				#end
+			</div>
+		</div>
+
+		<div class="editbox hide">
+			<form method="post" action="$reportslink/$!showreport.id/close" class="close-report-form">
+				#sectoken(false)
+				<div class="govuk-form-group">
+					<label class="govuk-label" for="solution-$!showreport.id">$!lang.get('reports.actionstaken')</label>
+					<textarea class="govuk-textarea" id="solution-$!showreport.id" name="solution" rows="3"></textarea>
+				</div>
+				<div class="sos-form-actions">
+					<button type="submit" class="govuk-button govuk-button__basic report-solution-btn" data-module="govuk-button">$!lang.get('idsk.reports.saveclose')</button>
+					<button type="button" class="govuk-button govuk-button--sec canceledit">$!lang.get('cancel')</button>
+				</div>
+			</form>
+		</div>
+	</li>
+#end
+
+################# VERZIE PRÍSPEVKU #####################
+## scoold.js (diff_match_patch): každý .newrev MUSÍ mať hneď ako nasledujúceho súrodenca .oldrev
+## (dis.next(".oldrev")) – nevkladať medzi ne žiadny element.
+#macro(idskrevtags $tags)#foreach($rtagTxt in $tags)#if($rtagTxt && !$rtagTxt.trim().isEmpty())<span class="sos-tag">$!rtagTxt.trim()</span> #end#end#end
+
+#macro(idskrevisionbox $showrev $showorigrev $showpost)
+	#set($actionlink = "#getpostlink($showpost false true)")
+	#set($_isCurrent = !$showpost.revisionid || $showpost.revisionid == $showrev.id)
+	<li class="sos-revision #if($_isCurrent)sos-revision--current#end">
+		<div class="sos-revision__head">
+			<div>
+				<h2 class="govuk-heading-s sos-mb-0">
+					#if ($showrev.original)
+						$!lang.get("original")
+					#else
+						$!lang.get("revisions.revision") &ndash; #formatdate($showrev.timestamp "")
+					#end
+				</h2>
+				<p class="govuk-body-s sos-muted sos-mb-0">$!lang.get('idsk.author'): #idskperson($showrev.author)</p>
+			</div>
+			<div>
+				#if ($_isCurrent)
+					<span class="sos-status sos-status--success">&#10003; $!lang.get('revisions.current')</span>
+				#elseif ($scooldUtils.canEdit($showpost, $authUser))
+					<form method="post" action="$!actionlink/$showrev.parentid/restore/$!showrev.id" class="sos-revision__restore">
+						#sectoken(false)
+						<button type="submit" class="govuk-button govuk-button--sec" data-module="govuk-button">$!lang.get("restore")</button>
+					</form>
+				#end
+			</div>
+		</div>
+		<div class="sos-revision__body">
+			#if ($showrev.title != $showorigrev.title || $showrev.original)
+				<p class="govuk-body-s sos-muted sos-mb-0">$!lang.get('posts.title')</p>
+				<div class="newrev sos-revision__title">$!showrev.title</div>#if($showorigrev.title)<span class="hide oldrev">$!showorigrev.title</span>#end
+			#end
+			#if ($showrev.body != $!showorigrev.body || $showrev.original)
+				<p class="govuk-body-s sos-muted sos-mb-0">$!lang.get('idsk.revisions.text')</p>
+				<div class="newrev sos-revision__text">$!showrev.body</div>#if($showorigrev.body)<span class="hide oldrev">$!showorigrev.body</span>#end
+			#end
+			#if ($showrev.tags != $showorigrev.tags || $showrev.original)
+				<p class="govuk-body-s sos-muted sos-mb-0">$!lang.get('tags.title')</p>
+				<div class="newrev tagsdiff sos-revision__tags">#idskrevtags($showrev.tags)</div>#if($showorigrev.tags)<span class="hide oldrev">#idskrevtags($!showorigrev.tags)</span>#end
+			#end
+		</div>
+	</li>
+#end
+
+## Rovnaká logika párovania ako pôvodné #revisionspage: každá verzia sa porovnáva so staršou
+## (nasledujúcou v zozname), posledná na strane s prvou verziou ďalšej strany ($lastOnPage).
+#macro(idskrevisionslist $revisions $showpost)
+	#if ($revisions && !$revisions.isEmpty())
+		<ol class="sos-revisions">
+		#if ($revisions.size() == 1)
+			#set($_lastrev = $revisions.get(0))
+			#set($_cmprev = $_lastrev)
+			#if($lastOnPage)#set($_cmprev = $lastOnPage)#end
+			#idskrevisionbox($_lastrev $_cmprev $showpost)
+		#else
+			#foreach($revision in $revisions)
+				#set($prevrev = $revision)
+				#if ($foreach.count < $revisions.size())
+					#set($prevrev = $revisions.get($foreach.count))
+				#elseif($lastOnPage)
+					#set($prevrev = $lastOnPage)
+				#end
+				#idskrevisionbox($revision $prevrev $showpost)
+			#end
+		#end
+		</ol>
+	#end
+#end
+
+################# SPÄTNÁ VÄZBA – zoznam #####################
+## Podobné ako #idskquestionslist, ale štítky vedú na $feedbacklink/tag/... a bez priestorov
+#macro(idskfeedbacklist $posts)
+	<ul class="sos-list">
+	#foreach($showpost in $posts)
+		#set($flinkTxt = "#getpostlink($showpost false false)")
+		#set($_fcount = $showpost.answercount)
+		#if(!$_fcount)#set($_fcount = 0)#end
+		<li id="$!showpost.id">
+			<article class="idsk-card">
+				<div class="idsk-card__content">
+					<div class="idsk-card__heading">
+						<h2 class="govuk-heading-s sos-mb-0"><a href="$!flinkTxt" class="govuk-link">$!showpost.title</a></h2>
+					</div>
+					#set($fplainTxt = $utils.stripHtml($utils.markdownToHtml($utils.stripHtml($!showpost.body))))
+					<div class="idsk-card__description">$!utils.abbreviate($fplainTxt, 220)</div>
+					<div class="sos-card-meta">
+						#if($showpost.isClosed())<span class="sos-status sos-status--neutral">$!lang.get('idsk.closed')</span>#end
+						<span>$!lang.get('idsk.feedback.replies'): <strong>$!_fcount</strong></span>
+						<span><time datetime="$!utils.formatDate($showpost.timestamp, 'yyyy-MM-dd', $currentLocale)">#formatdate($showpost.timestamp "")</time></span>
+						<span>#idskperson($showpost.author)</span>
+					</div>
+					#if($showpost.tags && !$showpost.tags.isEmpty())
+					<div>#idskfeedbacktags($showpost)</div>
+					#end
+				</div>
+			</article>
+		</li>
+	#end
+	</ul>
+#end
+
+#macro(idskfeedbacktags $post)
+	#foreach($ftagTxt in $post.tags)
+		#if($ftagTxt && $ftagTxt.trim() != "")
+			<a href="$feedbacklink/tag/$!utils.urlEncode($ftagTxt)" class="sos-tag">$!ftagTxt</a>
+		#end
+	#end
+#end

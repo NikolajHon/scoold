@@ -1,0 +1,710 @@
+/*
+ * Platforma SOS – doplnkové štýly pre IDSK layout Scooldu.
+ *
+ * 1) Kompatibilita: Scoold JS (scoold.js) používa JavaScript z Materialize
+ *    (modálne okno, čipy so štítkami, autocomplete, tooltipy, toast).
+ *    Materialize CSS sa na IDSK stránkach nenačítava, preto tu sú minimálne
+ *    štýly, bez ktorých by tieto prvky neboli skryté/použiteľné.
+ * 2) Komponenty, ktoré IDSK 3.0 zatiaľ neobsahuje (stránkovanie, zoznam
+ *    otázok, príspevok, komentáre, štítky).
+ *
+ * Farby a písmo vychádzajú z IDSK 3.0 (@id-sk/frontend 3.0.0-beta).
+ */
+
+:root {
+	--sos-primary: #126dff;
+	--sos-primary-dark: #072c66;
+	--sos-text: #0b0c0c;
+	--sos-muted: #505a5f;
+	--sos-border: #e0e0e0;
+	--sos-bg-light: #eff5fe;
+	--sos-success: #078814;
+	--sos-warning: #d96e00;
+	--sos-error: #c3112b;
+	--sos-focus: #ffdf0f;
+}
+
+/* ---------- základ ---------- */
+
+.sos-body {
+	font-family: "Source Sans Pro", arial, sans-serif;
+	color: var(--sos-text);
+	background: #fff;
+	margin: 0;
+}
+.hide { display: none !important; }
+a.govuk-button { text-decoration: none; }
+.sos-main { padding-top: 24px; padding-bottom: 48px; min-height: 60vh; }
+.sos-main:focus { outline: none; }
+.sos-muted { color: var(--sos-muted); }
+.sos-nowrap { white-space: nowrap; }
+.sos-mt-0 { margin-top: 0 !important; }
+.sos-mb-0 { margin-bottom: 0 !important; }
+
+.govuk-skip-link {
+	position: absolute; left: -9999px; top: 0; z-index: 1000;
+	padding: 10px 15px; background: var(--sos-focus); color: var(--sos-text);
+	font-weight: 700; text-decoration: underline;
+}
+.govuk-skip-link:focus { left: 15px; }
+
+.sos-logo-text {
+	display: inline-flex; align-items: center; gap: 10px;
+	color: var(--sos-primary-dark); text-decoration: none; font-weight: 700; font-size: 1.5rem;
+}
+.sos-logo-text img { height: 40px; width: auto; }
+
+/* ---------- hlavička: panel používateľa ---------- */
+
+.sos-user-panel { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sos-user-panel .govuk-button { margin-bottom: 0; }
+.sos-avatar {
+	display: inline-flex; align-items: center; justify-content: center;
+	width: 40px; height: 40px; border-radius: 50%;
+	background: var(--sos-primary-dark); color: #fff; font-weight: 700; text-decoration: none;
+}
+.sos-avatar:focus { outline: 3px solid var(--sos-focus); outline-offset: 0; }
+.govuk-header__navigation-item .sos-count {
+	display: inline-block; min-width: 20px; padding: 0 6px; margin-left: 4px;
+	border-radius: 10px; background: var(--sos-error); color: #fff; font-size: .8rem; text-align: center;
+}
+
+/* ---------- oznamy (infostrip) ---------- */
+
+.sos-banner .close-infostrip { float: right; font-size: 1.5rem; text-decoration: none; color: inherit; }
+.govuk-notification-banner--error { border-color: var(--sos-error); }
+.govuk-notification-banner--error .govuk-notification-banner__header { background: var(--sos-error); }
+
+/* ---------- navigácia na stránke (filtre) ---------- */
+
+.sos-tabs { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; margin: 0 0 24px; padding: 0; }
+.sos-tabs a {
+	display: inline-block; padding: 8px 16px; border: 1px solid var(--sos-border); border-radius: 4px;
+	color: var(--sos-primary-dark); text-decoration: none; font-size: 1rem;
+}
+.sos-tabs a:hover { border-color: var(--sos-primary); }
+.sos-tabs a:focus { outline: 3px solid var(--sos-focus); outline-offset: 0; }
+.sos-tabs a[aria-current="page"] { background: var(--sos-primary-dark); border-color: var(--sos-primary-dark); color: #fff; font-weight: 700; }
+
+.sos-page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.sos-page-head .govuk-button { margin-bottom: 16px; }
+
+.sos-search-big { display: flex; gap: 8px; max-width: 720px; margin-bottom: 24px; }
+.sos-search-big .govuk-input { flex: 1; }
+.sos-search-big .govuk-button { margin-bottom: 0; }
+
+/* ---------- štítky a stavy ---------- */
+
+.sos-tag {
+	display: inline-block; padding: 2px 10px; margin: 0 6px 6px 0; border-radius: 12px;
+	background: var(--sos-bg-light); color: var(--sos-primary-dark); font-size: .9rem; text-decoration: none;
+}
+a.sos-tag:hover { text-decoration: underline; }
+.sos-status {
+	display: inline-block; padding: 2px 8px; margin-right: 6px; border-radius: 4px;
+	font-size: .85rem; font-weight: 700; text-transform: uppercase; letter-spacing: .3px;
+}
+.sos-status--success { background: #e6f4e7; color: var(--sos-success); }
+.sos-status--warning { background: #fdf0e3; color: #8a4600; }
+.sos-status--neutral { background: #f3f2f1; color: var(--sos-muted); }
+
+/* ---------- zoznam otázok ---------- */
+
+.sos-list { list-style: none; margin: 0; padding: 0; }
+.sos-list > li { margin-bottom: 16px; }
+.sos-list .idsk-card { display: block; width: auto; max-width: none; }
+.sos-list .idsk-card__heading h2, .sos-list .idsk-card__heading h3 { line-height: 1.35; margin: 0 0 8px; }
+.sos-card-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; margin-top: 8px; color: var(--sos-muted); font-size: 1rem; }
+.sos-card-space { display: block; color: var(--sos-muted); font-size: .9rem; margin-bottom: 4px; }
+.sos-empty { padding: 32px; border: 1px dashed var(--sos-border); text-align: center; color: var(--sos-muted); }
+
+/* ---------- stránkovanie ---------- */
+
+.sos-pagination { margin: 32px 0; }
+.sos-pagination ul { display: flex; flex-wrap: wrap; gap: 4px; list-style: none; margin: 0; padding: 0; }
+.sos-pagination a, .sos-pagination span {
+	display: inline-block; min-width: 40px; padding: 8px 12px; text-align: center;
+	border: 1px solid var(--sos-border); border-radius: 4px; color: var(--sos-primary-dark); text-decoration: none;
+}
+.sos-pagination a:hover { border-color: var(--sos-primary); }
+.sos-pagination a:focus { outline: 3px solid var(--sos-focus); }
+.sos-pagination [aria-current="page"] { background: var(--sos-primary-dark); color: #fff; border-color: var(--sos-primary-dark); font-weight: 700; }
+.sos-pagination .sos-pagination__gap { border: 0; }
+
+/* ---------- detail otázky a odpovede ---------- */
+
+.sos-post { padding: 24px 0; border-bottom: 1px solid var(--sos-border); }
+.sos-post--answer { padding: 24px; margin-bottom: 16px; border: 1px solid var(--sos-border); border-radius: 4px; }
+.sos-post--accepted { border: 2px solid var(--sos-success); }
+.sos-post--unapproved { border-left: 5px solid var(--sos-warning); }
+.sos-post .postbody { font-size: 1.1875rem; line-height: 1.5; overflow-wrap: anywhere; }
+.sos-post .postbody img { max-width: 100%; height: auto; }
+.sos-post .postbody pre { overflow: auto; padding: 12px; background: #f3f2f1; }
+.sos-post .postbody blockquote { margin-left: 0; padding-left: 16px; border-left: 5px solid var(--sos-border); }
+.sos-post .postbody table { border-collapse: collapse; }
+.sos-post .postbody td, .sos-post .postbody th { border: 1px solid var(--sos-border); padding: 6px 10px; }
+.sos-post-meta { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 16px 0 8px; color: var(--sos-muted); font-size: 1rem; }
+.sos-post-actions { display: flex; flex-wrap: wrap; gap: 4px 20px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--sos-border); }
+.sos-post-actions a { font-size: 1rem; }
+.sos-post-actions a.delete-post { color: var(--sos-error); }
+.approve-answer { font-weight: 700; }
+.approve-answer.green-text { color: var(--sos-success); }
+.sos-accepted-label { color: var(--sos-success); font-weight: 700; }
+
+.sos-aside { padding: 16px 20px; margin-bottom: 24px; background: var(--sos-bg-light); border-radius: 4px; }
+.sos-aside dl { margin: 0; }
+.sos-aside dt { font-weight: 700; margin-top: 12px; }
+.sos-aside dt:first-child { margin-top: 0; }
+.sos-aside dd { margin: 4px 0 0; }
+
+/* komentáre */
+.comments { margin-top: 12px; }
+.commentbox { padding: 8px 0 8px 16px; border-left: 3px solid var(--sos-border); margin: 8px 0; font-size: 1rem; }
+.commentbox .comment-text p { display: inline; margin: 0; }
+.commentbox .comment-meta { color: var(--sos-muted); white-space: nowrap; }
+.commentbox a.delete-comment { color: var(--sos-error); margin-left: 8px; }
+.newcommentform { margin-top: 12px; }
+.newcommentform form { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
+.newcommentform .govuk-form-group { flex: 1; min-width: 240px; margin-bottom: 0; }
+.newcommentform .govuk-button { margin-bottom: 0; }
+
+/* formuláre */
+.similar-posts { margin-top: 8px; font-size: 1rem; }
+.similar-posts:empty { display: none; }
+.similar-posts .lightborder { display: none; }
+.editbox { padding: 16px; margin-top: 12px; border: 1px solid var(--sos-border); border-radius: 4px; }
+.sos-form-actions { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.EasyMDEContainer .CodeMirror { font-family: "Source Sans Pro", arial, sans-serif; font-size: 1.1875rem; border-color: #757575; }
+.EasyMDEContainer .CodeMirror-focused { outline: 3px solid var(--sos-focus); }
+
+/* prihlásenie */
+.sos-signin-box { max-width: 560px; }
+.sos-signin-box .govuk-button { width: 100%; }
+
+/* ---------- kompatibilita s Materialize JS ---------- */
+
+/* čipy so štítkami */
+.chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 44px; padding: 6px; border: 1px solid #757575; border-radius: 4px; background: #fff; position: relative; }
+.chips.focus { outline: 3px solid var(--sos-focus); }
+.chips .input { flex: 1; min-width: 160px; border: 0; outline: none; font: inherit; font-size: 1.1875rem; padding: 4px; background: transparent; }
+.chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 14px; background: var(--sos-bg-light); color: var(--sos-primary-dark); font-size: 1rem; }
+.chip .close { cursor: pointer; font-style: normal; }
+.chip:focus { outline: 3px solid var(--sos-focus); }
+
+/* dropdown / autocomplete */
+.dropdown-content {
+	display: none; position: absolute; z-index: 9999; min-width: 160px; max-height: 320px; overflow-y: auto;
+	margin: 0; padding: 0; list-style: none; opacity: 0; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,.2);
+}
+.dropdown-content li { padding: 10px 16px; cursor: pointer; }
+.dropdown-content li:hover, .dropdown-content li.active { background: var(--sos-bg-light); }
+.dropdown-content li > a, .dropdown-content li > span { color: var(--sos-primary-dark); text-decoration: none; }
+/* Materialize formSelect nad natívnym <select> – ponecháme natívny select */
+.select-wrapper { position: relative; }
+.select-wrapper input.select-dropdown, .select-wrapper .caret, .select-wrapper ul.select-dropdown { display: none !important; }
+.select-wrapper select { display: block !important; }
+
+/* modálne okno (hlásenie problému) */
+.modal {
+	display: none; position: fixed; left: 0; right: 0; top: 10%; z-index: 1003;
+	width: 90%; max-width: 640px; max-height: 80%; margin: auto; overflow-y: auto;
+	background: #fff; border-radius: 4px; box-shadow: 0 8px 24px rgba(0,0,0,.3);
+}
+.modal .modal-content { padding: 24px; }
+.modal .modal-footer { padding: 8px 24px 24px; text-align: right; }
+.modal-overlay { display: none; position: fixed; z-index: 999; top: -25%; left: 0; right: 0; bottom: 0; height: 125%; background: #000; }
+.modal textarea, .modal select { width: 100%; box-sizing: border-box; font: inherit; font-size: 1.1875rem; padding: 8px; border: 2px solid #757575; }
+.modal .btn { display: inline-block; padding: 10px 20px; border: 0; border-radius: 4px; background: var(--sos-primary); color: #fff; font: inherit; cursor: pointer; text-decoration: none; }
+.modal .btn-flat { display: inline-block; padding: 10px 20px; color: var(--sos-primary-dark); }
+
+/* tooltip, toast, materialbox, character counter */
+.material-tooltip { position: absolute; z-index: 2000; padding: 6px 10px; border-radius: 4px; background: #323232; color: #fff; font-size: .9rem; opacity: 0; visibility: hidden; pointer-events: none; }
+#toast-container { position: fixed; z-index: 10000; right: 5%; bottom: 5%; }
+.toast { margin-top: 8px; padding: 12px 24px; border-radius: 4px; background: #323232; color: #fff; }
+.materialboxed { cursor: zoom-in; }
+#materialbox-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 1000; background: #292929; }
+.character-counter { float: right; color: var(--sos-muted); font-size: .9rem; }
+
+/* indikátor načítavania */
+.progress.ajaxwait { position: relative; height: 4px; margin: 8px 0; overflow: hidden; background: var(--sos-bg-light); }
+.progress.ajaxwait .indeterminate { position: absolute; top: 0; bottom: 0; width: 30%; background: var(--sos-primary); animation: sos-progress 1.2s infinite linear; }
+@keyframes sos-progress { from { left: -30%; } to { left: 100%; } }
+
+/* ikony zo Scooldu (#ico makro) */
+.ico { width: 1em; height: 1em; vertical-align: -0.125em; }
+
+@media (max-width: 40.0625rem) {
+	.sos-post--answer { padding: 16px; }
+	.sos-search-big { flex-direction: column; }
+}
+
+/* ---------- doladenie po vizuálnej kontrole ---------- */
+.govuk-header__actionPanel .govuk-button.sos-signin-btn { background-color: var(--sos-primary); color: #fff; padding: 8px 16px; font-weight: 700; }
+.govuk-header__actionPanel .govuk-button.sos-signin-btn:hover { background-color: var(--sos-primary-dark); }
+.sos-form-actions .govuk-button { margin-bottom: 0; }
+.sos-form-actions { margin-bottom: 24px; }
+.questionpage > div > .sos-post:first-of-type { padding-top: 0; }
+.sos-aside .sos-tag { background: #fff; }
+
+/* ===== admin.css ===== */
+/* ---------- Platforma SOS – správa (admin.vm, macros-admin.vm) ---------- */
+
+.sos-admin-title .govuk-caption-l { display: block; margin-bottom: 4px; }
+.sos-admin-nav { margin-bottom: 32px; }
+.sos-admin-section { margin-bottom: 32px; }
+.sos-admin-box { padding: 20px 24px; margin-bottom: 32px; border: 1px solid var(--sos-border); border-radius: 4px; background: #fff; }
+.sos-admin-box > .govuk-heading-m:first-child, .sos-admin-box .govuk-fieldset__heading { margin-top: 0; }
+.sos-admin-w23 { max-width: 480px; }
+.sos-admin-wfull { width: 100%; box-sizing: border-box; min-width: 0; }
+.sos-admin-mono { font-family: Consolas, "Courier New", monospace; font-size: .95rem; }
+.sos-admin-break { overflow-wrap: anywhere; word-break: break-word; }
+.sos-admin-cap { text-transform: capitalize; }
+.sos-admin-danger, .sos-admin-danger:visited { color: var(--sos-error); }
+.sos-admin-danger:hover { color: #8a0c1f; }
+.sos-admin-alert { color: var(--sos-error); }
+.sos-admin-status--error { background: #fbe9eb; color: var(--sos-error); }
+.sos-admin-scroll { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 24px; }
+.sos-admin-scroll > .govuk-table { margin-bottom: 0; }
+.sos-admin-section code, .sos-webhook code { font-family: Consolas, "Courier New", monospace; font-size: .9em; }
+.sos-admin-kv th { width: 30%; }
+.sos-admin-compact .govuk-table__header, .sos-admin-compact .govuk-table__cell { padding: 8px 12px 8px 0; font-size: 1rem; }
+.sos-admin-compact .govuk-table__header:last-child, .sos-admin-compact .govuk-table__cell:last-child { padding-right: 0; }
+.sos-admin-compact { margin-bottom: 0; }
+
+/* chybové hlásenie pri vytváraní oblasti – scoold.js pridá #name_text.invalid */
+.sos-invalid-msg { display: none; }
+#name_text.invalid { border-color: var(--sos-error); }
+#name_text.invalid + .sos-invalid-msg { display: block; margin-top: 8px; }
+
+/* upozornenie (import prepíše údaje) */
+.sos-admin-warning { display: flex; align-items: center; gap: 12px; margin: 0 0 20px; font-size: 1.1875rem; }
+.sos-admin-warning__icon {
+	flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+	width: 32px; height: 32px; border-radius: 50%; background: var(--sos-text); color: #fff; font-weight: 700;
+}
+
+/* ---------- oblasti ---------- */
+.sos-spaces { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.sos-spaces__anchor { display: none; }
+.sos-spacebox__inner { height: 100%; box-sizing: border-box; padding: 16px; border: 1px solid var(--sos-border); border-radius: 4px; background: #fff; }
+.sos-spacebox__name { margin: 0 0 8px; font-weight: 700; overflow-wrap: anywhere; }
+.sos-spacebox__meta { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
+.sos-spacebox__edit { font-size: 1rem; }
+.sos-spacebox__editbox { margin-top: 0; padding: 0; border: 0; }
+.sos-spacebox__editbox .govuk-form-group { margin-bottom: 16px; }
+.sos-spacebox__editbox .sos-form-actions { margin-bottom: 0; gap: 12px 16px; }
+
+/* ---------- webhooky ---------- */
+.sos-admin-cols { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0 16px; }
+.sos-webhooks { margin-bottom: 24px; }
+.sos-webhook { padding: 16px 20px; margin-bottom: 12px; border: 1px solid var(--sos-border); border-radius: 4px; }
+.sos-webhook__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; }
+.sos-webhook__url { margin: 0; font-weight: 700; overflow-wrap: anywhere; min-width: 0; }
+.sos-webhook__actions { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 1rem; }
+.sos-admin-codes { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 12px 0 0; padding: 0; }
+.sos-admin-codes li { padding: 2px 8px; border-radius: 3px; background: #f3f2f1; font-size: .95rem; }
+.sos-webhook .sos-admin-alert { margin: 12px 0 0; }
+
+/* ---------- motívy ---------- */
+.sos-theme-label { display: inline-flex; align-items: center; gap: 8px; }
+.sos-swatch { display: inline-block; width: 18px; height: 18px; border: 1px solid rgba(0,0,0,.2); border-radius: 3px; }
+.sos-swatch + .sos-swatch { margin-left: -6px; }
+.sos-swatch--grey-d3 { background: #424242; }
+.sos-swatch--red-d4 { background: #b71c1c; }
+.sos-swatch--red-d3 { background: #c62828; }
+.sos-swatch--bluegrey-d3 { background: #37474f; }
+.sos-swatch--green-d3 { background: #2e7d32; }
+.sos-swatch--brown-d3 { background: #4e342e; }
+.sos-swatch--blue-d3 { background: #1565c0; }
+.sos-swatch--lightblue-l2 { background: #81d4fa; }
+.sos-swatch--orange { background: #ff9800; }
+.sos-swatch--deeporange-d3 { background: #d84315; }
+.sos-swatch--grey-l1 { background: #bdbdbd; }
+.sos-swatch--black { background: #000; }
+.sos-theme-preview { display: block; max-width: 100%; height: auto; margin-bottom: 24px; border: 1px solid var(--sos-border); }
+
+/* ---------- API kľúče ---------- */
+.sos-apikeys__text p { margin-top: 0; }
+.sos-apikeys__text code { background: #f3f2f1; padding: 0 4px; }
+.sos-apikeys__actions a + a { margin-left: 16px; }
+.sos-apikeys__generate { align-items: flex-end; }
+.sos-apikeys__generate .govuk-button { margin-bottom: 0; }
+
+/* ---------- konfigurácia ---------- */
+.sos-config { margin-bottom: 12px; }
+.sos-config .govuk-details__summary-text { font-weight: 700; }
+.sos-config__body { padding-top: 0; padding-bottom: 0; }
+.sos-config-item {
+	display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 8px 24px; align-items: start;
+	padding: 16px 0; border-bottom: 1px solid var(--sos-border);
+}
+.sos-config-item:last-child { border-bottom: 0; }
+.sos-config-item__key { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 0 0 4px; }
+.sos-config-item__key code { font-weight: 700; overflow-wrap: anywhere; }
+.sos-config-item__desc { margin: 0; color: var(--sos-muted); overflow-wrap: anywhere; }
+.sos-config-item__desc p { margin: 0 0 4px; }
+.sos-config-item__form { display: flex; align-items: center; gap: 12px; }
+.sos-config-item__form .govuk-input { flex: 1; min-width: 0; }
+.sos-config-item__form .govuk-button { margin-bottom: 0; }
+.sos-config-item__form .govuk-checkboxes { flex: 1; }
+.sos-config-bool { margin-bottom: 0; cursor: pointer; }
+
+/* ---------- prostredie ---------- */
+.sos-admin-licenses li { padding: 8px 0; border-bottom: 1px solid var(--sos-border); font-size: 1rem; }
+
+/* ---------- prehľad (dashboard) ---------- */
+.sos-dashboard__period { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 24px; }
+.sos-dashboard__period .sos-tabs { margin: 0; }
+.sos-dashboard__period .sos-tabs a { padding: 4px 12px; }
+.sos-admin-stats {
+	display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 16px;
+	list-style: none; margin: 0 0 32px; padding: 0;
+}
+.sos-admin-stat { display: flex; flex-direction: column; gap: 4px; padding: 16px; border-radius: 4px; background: var(--sos-bg-light); border-left: 4px solid var(--sos-primary); }
+.sos-admin-stat__label { color: var(--sos-muted); font-size: 1rem; }
+.sos-admin-stat__value { font-size: 2rem; font-weight: 700; line-height: 1.2; color: var(--sos-primary-dark); }
+.sos-admin-stat__change { font-size: .9rem; }
+.sos-admin-stat__change--up { color: var(--sos-success); }
+.sos-admin-stat__change--down { color: var(--sos-error); }
+.sos-admin-panel { padding: 16px 20px; margin-bottom: 24px; border: 1px solid var(--sos-border); border-radius: 4px; }
+.sos-admin-panel > .govuk-heading-s { margin-bottom: 12px; }
+.sos-admin-panel > .govuk-body:last-child, .sos-admin-panel .govuk-list:last-child { margin-bottom: 0; }
+.sos-admin-chart { position: relative; height: 280px; }
+.sos-admin-staff li { margin-bottom: 6px; }
+.sos-admin-panel .sos-pagination { margin: 16px 0 0; }
+.sos-audit code { overflow-wrap: anywhere; }
+
+@media (max-width: 640px) {
+	.sos-admin-box { padding: 16px; }
+	.sos-config-item { grid-template-columns: minmax(0, 1fr); }
+	.sos-admin-chart { height: 220px; }
+	.sos-admin-panel { padding: 12px 14px; }
+	.sos-admin-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+	.sos-admin-stat__value { font-size: 1.5rem; }
+	.sos-admin-kv th { width: auto; }
+}
+
+/* ---------- tabuľky: ID-SK riadky ako grid aj na mobile (inak sa hlavička rozpadne do stĺpca) ---------- */
+.sos-admin-section .govuk-table__head,
+.sos-admin-section .govuk-table__row { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: .5rem; }
+.sos-admin-section .govuk-table__head { display: block; }
+.sos-admin-section .govuk-table__cell--numeric,
+.sos-admin-section .govuk-table__header--numeric { justify-content: flex-end; text-align: right; }
+.sos-admin-compact .govuk-table__row { grid-template-columns: minmax(0, 2.5fr); padding: .5rem .75rem; }
+.sos-admin-kv .govuk-table__row { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
+.sos-admin-wide { min-width: 640px; }
+.sos-admin-wide.api-key-table .govuk-table__row { grid-template-columns: minmax(0, 1.2fr) minmax(0, 2fr) minmax(0, 1fr); }
+.sos-audit .govuk-table__row { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.2fr) minmax(0, 2fr) minmax(0, .9fr) minmax(0, 1.2fr); }
+
+/* ===== moderation.css ===== */
+/* Platforma SOS – moderovanie: nahlásenia, verzie príspevkov, spätná väzba, komentár (agent "moderation") */
+
+/* ---------- nahlásenia ---------- */
+.sos-reports-admin { margin-bottom: 16px; }
+.sos-report { padding: 20px 24px; border: 1px solid var(--sos-border); border-left: 5px solid var(--sos-primary); border-radius: 4px; background: #fff; }
+.sos-report.closed-report { border-left-color: var(--sos-success); background: #fafafa; }
+.sos-report.closed-report .sos-report__title h2 { color: var(--sos-muted); }
+.sos-report__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; }
+.sos-report__title { flex: 1; min-width: 240px; }
+.sos-report__labels { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; }
+.sos-report__goto { margin-bottom: 0; }
+.sos-report__props { margin: 16px 0 0; padding: 12px 16px; background: #f3f2f1; font-size: 1rem; overflow-wrap: anywhere; }
+.sos-report__props > div { display: flex; flex-wrap: wrap; gap: 0 8px; }
+.sos-report__props dt { font-weight: 700; }
+.sos-report__props dd { margin: 0; }
+.sos-report__content { margin-top: 16px; padding: 12px 16px; border-left: 4px solid var(--sos-border); background: var(--sos-bg-light); }
+.sos-report__content .postbody { font-size: 1rem; overflow-wrap: anywhere; }
+.sos-report__content .postbody img { max-width: 100%; height: auto; }
+.sos-report .editbox { margin-top: 16px; }
+.sos-link-danger, .sos-post-actions a.sos-link-danger { color: var(--sos-error); }
+
+/* formulár nahlásenia v modálnom okne */
+/* scoold.js vloží formulár priamo do .modal (bez .modal-content), preto vlastný odstup */
+.sos-report-form { padding: 24px; }
+.sos-report-form .govuk-select { width: 100%; height: auto; min-height: 40px; }
+.sos-report-form .sos-form-actions { margin-bottom: 0; }
+
+/* ---------- verzie príspevku ---------- */
+.sos-revisions { list-style: none; margin: 0; padding: 0; }
+.sos-revision { margin-bottom: 16px; padding: 20px 24px; border: 1px solid var(--sos-border); border-radius: 4px; }
+.sos-revision--current { border: 2px solid var(--sos-success); }
+.sos-revision__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--sos-border); }
+.sos-revision__head .govuk-button { margin-bottom: 0; }
+.sos-revision__restore { margin: 0; }
+.sos-revision__body > p { margin-top: 12px; }
+.sos-revision__body > p:first-child { margin-top: 0; }
+.sos-revision__title { font-size: 1.5rem; font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
+.sos-revision__text { font-size: 1.1875rem; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+.sos-revision__tags .sos-tag { margin-right: 4px; }
+
+/* zvýraznenie rozdielov (spany vkladá scoold.js) – nielen farbou: podčiarknutie / prečiarknutie */
+.diff-ins { background: #cce9cf; color: #0b0c0c; text-decoration: underline; text-decoration-thickness: 2px; }
+.diff-del { background: #f6d2d7; color: #0b0c0c; text-decoration: line-through; }
+.sos-diff-legend { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-bottom: 24px; }
+.sos-diff-legend .diff-ins, .sos-diff-legend .diff-del { padding: 2px 6px; }
+
+/* ---------- komentár ---------- */
+.sos-comment-single { margin-bottom: 24px; }
+.sos-comment-single .commentbox { font-size: 1.1875rem; }
+
+@media (max-width: 40.0625rem) {
+	.sos-report, .sos-revision { padding: 16px; }
+	.sos-report__goto { width: 100%; text-align: center; }
+}
+
+/* ===== profile.css ===== */
+/* Platforma SOS – profil, používatelia, štítky (agent "profile") */
+
+.sos-link-danger, a.sos-link-danger:link, a.sos-link-danger:visited { color: var(--sos-error); }
+
+/* ---------- profil ---------- */
+.sos-profile-card { margin-bottom: 24px; }
+.sos-profile-pic {
+	display: block; width: 100%; max-width: 240px; height: auto; aspect-ratio: 1 / 1; object-fit: cover;
+	border-radius: 4px; border: 1px solid var(--sos-border); background: var(--sos-bg-light);
+}
+.sos-profile-pic.droptarget { outline: 3px dashed var(--sos-primary); outline-offset: 2px; }
+.sos-profile-card .viewbox { margin-top: 12px; }
+.sos-profile-card .editbox { max-width: 360px; }
+.sos-avatar-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.sos-avatar-actions .govuk-button { margin-bottom: 0; }
+.sos-profile-roles { margin-top: 12px; }
+
+.sos-profile .sos-page-head { margin-bottom: 16px; }
+.sos-profile .sos-page-head .govuk-button { margin-bottom: 0; }
+.sos-profile-about { margin-bottom: 16px; overflow-wrap: anywhere; }
+
+.sos-profile-facts {
+	display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px 24px;
+	margin: 0 0 32px; padding: 16px 20px; background: var(--sos-bg-light); border-radius: 4px;
+}
+.sos-profile-facts dt { font-weight: 700; }
+.sos-profile-facts dd { margin: 4px 0 0; overflow-wrap: anywhere; }
+
+.sos-space-list { margin-bottom: 32px; }
+.sos-space-item {
+	display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px;
+	padding: 8px 12px; margin-bottom: 8px !important; border: 1px solid var(--sos-border); border-left-width: 5px; border-radius: 4px;
+}
+.sos-space-item__name { font-weight: 700; margin-right: auto; }
+.sos-space-modlabel { display: none; }
+.sos-space-item.orange-border { border-left-color: var(--sos-warning); }
+.sos-space-item.orange-border .sos-space-modlabel { display: inline-block; }
+.sos-space-item .make-mod-btn { font-size: 1rem; }
+
+.sos-profile-edit { margin-bottom: 32px; padding: 24px; }
+.sos-profile-edit .govuk-input, .sos-profile-edit .govuk-textarea { max-width: 100%; }
+.sos-profile-email-actions { display: flex; flex-wrap: wrap; gap: 4px 20px; margin-top: 8px; }
+.sos-autocomplete-wrap { position: relative; }
+.sos-autocomplete-wrap .autocomplete-content { width: 100%; }
+
+.sos-profile-admin { margin-top: 8px; }
+.sos-profile-actions { margin-bottom: 0; }
+.sos-profile-actions li { margin-bottom: 8px; }
+
+.sos-profile-badges .govuk-details__text { max-width: 100%; }
+.sos-badge-list { min-height: 32px; }
+.sos-badge-list #user-badges:empty::after, .sos-badge-list #available-badges:empty::after { content: "–"; color: var(--sos-muted); }
+.sos-badge { margin: 0 6px 6px 0; text-decoration: none; cursor: pointer; border: 1px solid rgba(0,0,0,.15); }
+.sos-badge .badge-icon { margin-right: 2px; }
+.sos-badge-colors { display: flex; flex-wrap: wrap; gap: 0 24px; align-items: flex-end; }
+.sos-badge-colors input[type=color] { width: 64px; height: 40px; padding: 2px; border: 2px solid #0b0c0c; background: #fff; }
+.sos-badge-colors .emoji-picker-container { position: relative; }
+.sos-badge-colors .emoji-button { margin-bottom: 0; }
+.sos-badge-delete-list li { margin-bottom: 4px; }
+
+.sos-profile-posts { margin-top: 16px; padding-top: 24px; border-top: 1px solid var(--sos-border); }
+.sos-profile-posts section { margin-bottom: 32px; scroll-margin-top: 16px; }
+
+/* ---------- používatelia ---------- */
+.sos-people { list-style: none; margin: 0 0 24px; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.sos-person { display: flex; gap: 16px; align-items: flex-start; padding: 16px; border: 1px solid var(--sos-border); border-radius: 4px; }
+.sos-person__pic { flex: 0 0 auto; width: 50px; height: 50px; border-radius: 50%; object-fit: cover; background: var(--sos-bg-light); }
+.sos-person__body { min-width: 0; flex: 1; overflow-wrap: anywhere; }
+.sos-person .sos-card-meta { margin-top: 4px; font-size: .95rem; }
+.sos-person__report { display: inline-block; margin-top: 6px; }
+.sos-person .govuk-checkboxes__item { margin-bottom: 0; }
+.sos-people--compact { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.sos-people--compact .sos-person { padding: 8px 12px; gap: 12px; }
+.sos-people--compact .sos-person__pic { width: 32px; height: 32px; }
+
+.sos-people-filter { margin-bottom: 24px; }
+.sos-people-filter .govuk-details__text { max-width: 100%; }
+.sos-people-bulk .sos-aside .govuk-button { margin-bottom: 0; }
+.sos-select-multiple { width: 100%; min-height: 120px; padding: 4px; }
+
+/* ---------- štítky ---------- */
+.sos-tags-add .govuk-details__text { max-width: 720px; }
+.sos-inline-form { display: flex; gap: 8px; align-items: flex-start; }
+.sos-inline-form .govuk-input { flex: 1; }
+.sos-inline-form .govuk-button { margin-bottom: 0; }
+
+.sos-tag-grid { list-style: none; margin: 0 0 24px; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.sos-tagbox { height: 100%; box-sizing: border-box; padding: 16px; border: 1px solid var(--sos-border); border-top: 4px solid var(--sos-primary); border-radius: 4px; overflow-wrap: anywhere; }
+.sos-tagbox__count { margin: 4px 0 8px; }
+.sos-tagbox .tag-description-box:empty { display: none; }
+.sos-tagbox__edit { display: inline-block; margin-top: 8px; }
+.sos-tagbox .editbox { padding: 0; margin: 0; border: 0; }
+.sos-tagbox .govuk-form-group { margin-bottom: 12px; }
+.sos-tagbox .sos-form-actions { gap: 8px; margin-bottom: 8px; }
+
+@media (max-width: 64rem) {
+	.sos-people { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+	.sos-tag-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 48rem) {
+	.sos-tag-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 40.0625rem) {
+	.sos-people, .sos-people--compact, .sos-tag-grid { grid-template-columns: 1fr; }
+	.sos-profile-pic { max-width: 160px; }
+	.sos-inline-form { flex-direction: column; align-items: stretch; }
+	.sos-profile-edit { padding: 16px; }
+}
+
+/* ===== settings.css ===== */
+/* Platforma SOS – stránky Nastavenia (settings.vm) a Úvodné nastavenie (onboarding.vm) */
+
+/* ---------- nastavenia ---------- */
+.sos-settings-section { padding-bottom: 16px; margin-bottom: 32px; border-bottom: 1px solid var(--sos-border); }
+.sos-settings-section:last-child { border-bottom: 0; }
+.sos-settings-section .govuk-heading-m .sos-status { margin-left: 8px; vertical-align: middle; font-size: 1rem; }
+.sos-settings-save { margin-top: -8px; margin-bottom: 40px; }
+.sos-settings-nav .govuk-list { margin-bottom: 0; }
+.sos-settings-nav .govuk-list li { margin-bottom: 8px; }
+.sos-settings-filter-toggle { margin: 0 0 8px 40px; }
+.sos-settings-conditional { margin-top: 0; margin-bottom: 16px; }
+.sos-settings-conditional .govuk-form-group { margin-bottom: 16px; }
+.sos-select-multiple { height: auto; min-height: 8rem; min-width: 18rem; max-width: 100%; padding: 4px; }
+.sos-select-multiple option { padding: 4px 8px; }
+.sos-location-wrap { position: relative; }
+.sos-location-wrap .dropdown-content { width: 100%; }
+
+.sos-twofa-setup { margin-bottom: 24px; padding: 20px; border: 1px solid var(--sos-border); border-radius: 4px; }
+.sos-twofa-setup--done { padding: 0; border: 0; }
+.sos-twofa-grid { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+.sos-twofa-qr img { display: block; max-width: 100%; height: auto; border: 1px solid var(--sos-border); background: #fff; }
+.sos-twofa-form { flex: 1; min-width: 240px; }
+.sos-input-code { max-width: 12rem; letter-spacing: .15em; }
+.sos-backup-code { display: inline-block; padding: 8px 12px; font-size: 1.25rem; letter-spacing: .1em; background: #f3f2f1; border: 1px solid var(--sos-border); word-break: break-all; }
+
+.sos-settings-danger .govuk-button { margin-bottom: 0; }
+
+/* osobné API tokeny – makro #idskapikeyspage (idsk/macros-admin.vm, štýly v admin.css) */
+.sos-settings-tokens .govuk-table { margin-bottom: 16px; }
+
+@media (min-width: 40.0625rem) {
+	.sos-settings-nav-col { position: sticky; top: 16px; }
+}
+
+/* ---------- úvodné nastavenie (onboarding) ---------- */
+/* bez pätičky – biele pozadie až po spodok okna */
+body.sos-onboarding { min-height: 100vh; }
+.sos-onboarding .sos-onboarding-col { float: none; margin: 0 auto; }
+.sos-onboarding-progress { margin-bottom: 32px; }
+.sos-steps { display: flex; list-style: none; margin: 0; padding: 0; counter-reset: none; }
+.sos-steps__item { flex: 1; position: relative; min-width: 0; }
+.sos-steps__item + .sos-steps__item::before {
+	content: ""; position: absolute; top: 18px; right: calc(50% + 22px); left: calc(-50% + 22px);
+	height: 2px; background: var(--sos-border);
+}
+.sos-steps__item--done + .sos-steps__item::before,
+.sos-steps__item--done + .sos-steps__item--current::before { background: var(--sos-primary-dark); }
+.sos-steps__link { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; text-decoration: none; color: var(--sos-muted); font-size: 1rem; line-height: 1.3; padding: 0 4px; }
+.sos-steps__link:hover .sos-steps__label { text-decoration: underline; }
+.sos-steps__link:focus { outline: 3px solid var(--sos-focus); outline-offset: 2px; }
+.sos-steps__num {
+	display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%;
+	border: 2px solid #757575; background: #fff; color: var(--sos-text); font-weight: 700;
+}
+.sos-steps__item--done .sos-steps__num { background: var(--sos-primary-dark); border-color: var(--sos-primary-dark); color: #fff; }
+.sos-steps__item--done .sos-steps__link { color: var(--sos-primary-dark); }
+.sos-steps__item--current .sos-steps__num { border-color: var(--sos-primary); border-width: 3px; color: var(--sos-primary-dark); box-shadow: 0 0 0 3px var(--sos-bg-light); }
+.sos-steps__item--current .sos-steps__link { color: var(--sos-text); font-weight: 700; }
+
+.sos-onboarding-fieldset { margin-bottom: 32px; }
+.sos-onboarding-fieldset + .sos-onboarding-fieldset { padding-top: 8px; }
+.sos-onboarding-actions { margin-top: 16px; }
+.sos-onboarding-test { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin: 8px 0 24px; }
+.sos-onboarding-test .govuk-button { margin-bottom: 0; }
+.sos-test-result { font-size: 1.1875rem; font-weight: 700; }
+.sos-test-result:empty { display: none; }
+/* triedy nastavované zo scoold.js po teste pripojenia */
+.sos-test-result.green-text { color: var(--sos-success); }
+.sos-test-result.red-text { color: var(--sos-error); }
+.sos-monospace { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 1rem; }
+.sos-code { word-break: break-all; font-size: .95rem; }
+.sos-checkboxes-inline { display: flex; flex-wrap: wrap; gap: 0 24px; }
+
+/* scoold.js (merač sily hesla) prepíše class poľa #passw na "pass-meter psms-*" – vzhľad ako govuk-input */
+.sos-pass-group input[type=password] {
+	font-family: "Source Sans Pro", arial, sans-serif; font-size: 1rem; line-height: 1.5; box-sizing: border-box;
+	width: 100%; height: 3rem; margin: 0; padding: 5px 1rem; -webkit-appearance: none; appearance: none;
+	border: 2px solid #424242; border-radius: 5px;
+}
+.sos-pass-group input[type=password]:focus { outline: 3px solid var(--sos-focus); outline-offset: 0; box-shadow: inset 0 0 0 2px; }
+.sos-pass-group input.psms-25 { border-bottom: 4px solid var(--sos-error); }
+.sos-pass-group input.psms-50 { border-bottom: 4px solid var(--sos-warning); }
+.sos-pass-group input.psms-75, .sos-pass-group input.psms-100 { border-bottom: 4px solid var(--sos-success); }
+.sos-pass-group #pass-meter-message { margin: 4px 0 0; }
+
+/* ===== static.css ===== */
+/* Platforma SOS – statické stránky: O platforme, Ochrana osobných údajov, Podmienky,
+   Jazyky, 404, chybová stránka, dokumentácia API (agent "static"). */
+
+/* ---------- O platforme / Ochrana OÚ / Podmienky ---------- */
+.sos-static-edit { margin-bottom: 24px; }
+.sos-placeholder { color: var(--sos-muted); font-style: italic; }
+.sos-html-editor { font-family: Consolas, "Courier New", monospace; font-size: 1rem; line-height: 1.4; min-height: 360px; }
+
+/* vlastný HTML obsah od administrátora (bez govuk tried) dostane ID-SK typografiu */
+.sos-richtext { overflow-wrap: anywhere; }
+.sos-richtext p:not([class]), .sos-richtext li:not([class]), .sos-richtext td:not([class]), .sos-richtext th:not([class]) {
+	font-size: 1.1875rem; line-height: 1.32; color: var(--sos-text);
+}
+.sos-richtext p:not([class]) { margin: 0 0 20px; }
+.sos-richtext h2:not([class]) { font-size: 1.6875rem; line-height: 1.25; font-weight: 700; margin: 40px 0 20px; }
+.sos-richtext h3:not([class]) { font-size: 1.3125rem; line-height: 1.25; font-weight: 700; margin: 30px 0 15px; }
+.sos-richtext ul:not([class]), .sos-richtext ol:not([class]) { margin: 0 0 20px; padding-left: 20px; }
+.sos-richtext ul:not([class]) { list-style: disc; }
+.sos-richtext ol:not([class]) { list-style: decimal; }
+.sos-richtext li:not([class]) { margin-bottom: 5px; }
+.sos-richtext a:not([class]) { color: var(--sos-primary); text-decoration: underline; }
+.sos-richtext a:not([class]):focus { outline: 3px solid transparent; background: var(--sos-focus); color: var(--sos-text); box-shadow: 0 -2px var(--sos-focus), 0 4px var(--sos-text); text-decoration: none; }
+.sos-richtext table:not([class]) { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+.sos-richtext table:not([class]) th, .sos-richtext table:not([class]) td { padding: 10px 20px 10px 0; border-bottom: 1px solid #b1b4b6; text-align: left; vertical-align: top; }
+.sos-richtext img { max-width: 100%; height: auto; }
+.sos-richtext > :first-child { margin-top: 0; }
+
+.sos-a11y { margin-top: 48px; padding-top: 32px; border-top: 2px solid var(--sos-border); }
+.sos-a11y:focus { outline: none; }
+.sos-a11y:target > h2 { background: var(--sos-bg-light); }
+
+/* ---------- Jazyky ---------- */
+.sos-lang-table .govuk-table__header, .sos-lang-table .govuk-table__cell { vertical-align: middle; }
+.sos-lang-table tbody .govuk-table__header { font-weight: 400; }
+.sos-lang-name { text-transform: capitalize; }
+.sos-lang-table__row--current .sos-lang-name { font-weight: 700; }
+.sos-lang-current { margin-left: 8px; }
+.sos-lang-table__action { width: 1%; white-space: nowrap; text-align: right; }
+.sos-lang-table form { margin: 0; }
+
+/* ---------- 404 / chyba ---------- */
+.sos-errorpage { padding-top: 8px; }
+.sos-errorpage .govuk-list { margin-bottom: 30px; }
+.sos-error-reason { overflow-wrap: anywhere; }
+
+/* ---------- Dokumentácia API (Swagger UI) ---------- */
+.sos-apidocs { margin: 0 -15px; }
+.sos-apidocs .swagger-ui .wrapper { padding: 0 15px; }
+.sos-apidocs .swagger-ui .information-container .info { margin: 20px 0; }
+.sos-apidocs .swagger-ui, .sos-apidocs .swagger-ui .opblock-tag, .sos-apidocs .swagger-ui .info .title {
+	font-family: "Source Sans Pro", arial, sans-serif;
+}
+
+
+/* avatar v profilovom dialógu hlavičky – vždy štvorec/kruh, nedeformovať */
+.govuk-header__profile__body img.sos-profile-avatar {
+	width: 96px; height: 96px; min-width: 96px; flex: 0 0 auto;
+	align-self: center; border-radius: 50%; object-fit: cover; margin-bottom: 12px;
+}

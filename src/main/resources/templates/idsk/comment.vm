@@ -1,0 +1,22 @@
+## Platforma SOS – samostatná stránka komentára (GET /comment/{id}, ID-SK)
+## AJAX varianty (nový komentár, načítanie komentárov) renderuje pôvodný comment.vm mimo layoutu.
+<nav class="govuk-breadcrumbs" aria-label="Breadcrumb">
+	<ol class="govuk-breadcrumbs__list">
+		<li class="govuk-breadcrumbs__list-item"><a class="govuk-breadcrumbs__link" href="$questionslink">$!lang.get('questions.title')</a></li>
+	</ol>
+</nav>
+<div class="govuk-grid-row">
+	<div class="govuk-grid-column-two-thirds-from-desktop">
+		<h1 class="govuk-heading-xl">$!lang.get("comment.title")</h1>
+		#if ($showComment)
+			<div class="comment sos-comment-single">
+				#idskcommentbox($showComment)
+			</div>
+			#if($showComment.parentid)
+			<p class="govuk-body"><a class="govuk-link" href="$questionlink/$!utils.urlEncode($showComment.parentid)">&larr; $!lang.get("backtopost")</a></p>
+			#end
+		#else
+			<div class="sos-empty"><p class="govuk-body-l sos-mb-0">$!lang.get("search.notfound")</p></div>
+		#end
+	</div>
+</div>

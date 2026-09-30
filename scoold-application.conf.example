@@ -1,0 +1,40 @@
+# Vzorová konfigurácia pre lokálny vývoj – skopírujte do scoold-application.conf
+#############  CORE  #############
+
+scoold.app_name = "Platforma SOS – Komunita"
+# scoold.para_access_key = "" (vygeneruje sa automaticky pri prvom štarte)
+# scoold.para_secret_key = "" (vygeneruje sa automaticky pri prvom štarte)
+scoold.para_endpoint = "http://para:8080"
+scoold.host_url = "http://localhost:8000"
+scoold.env = "development"
+# scoold.app_secret_key = "" (vygeneruje sa automaticky pri prvom štarte)
+scoold.admins = "Mykola.Honcharenko@posam.sk,admin@sos.local"
+
+#############  CUSTOMIZATION  #############
+
+scoold.default_language_code = "sk"
+
+#############  MISCELLANEOUS  #############
+
+scoold.autoinit.para_config_file = "/scoold/para-application.conf"
+
+#############  KEYCLOAK (OpenID Connect)  #############
+
+# prehliadač -> Keycloak (verejná adresa)
+scoold.security.oauth.authz_url = "http://localhost:8081/realms/sos/protocol/openid-connect/auth"
+# Para -> Keycloak (interná adresa v docker sieti)
+scoold.security.oauth.token_url = "http://keycloak:8080/realms/sos/protocol/openid-connect/token"
+scoold.security.oauth.profile_url = "http://keycloak:8080/realms/sos/protocol/openid-connect/userinfo"
+scoold.oa2_app_id = "scoold"
+scoold.oa2_secret = "scoold-dev-secret"  # len pre lokálny Keycloak
+scoold.security.oauth.scope = "openid email profile"
+scoold.security.oauth.parameters.id = "sub"
+scoold.security.oauth.parameters.name = "name"
+scoold.security.oauth.parameters.given_name = "given_name"
+scoold.security.oauth.parameters.family_name = "family_name"
+scoold.security.oauth.parameters.email = "email"
+scoold.security.oauth.download_avatars = false
+scoold.security.oauth.provider = "Prihlásiť sa cez Keycloak"
+# Keycloak presmeruje prehliadač späť na Para (musí byť dostupná z prehliadača)
+scoold.security.redirect_uri = "http://localhost:8080"
+

@@ -1,0 +1,30 @@
+## Platforma SOS – história verzií príspevku (ID-SK)
+## Rozdiely medzi verziami zvýrazňuje scoold.js (diff_match_patch) na .newrev/.oldrev.
+<nav class="govuk-breadcrumbs" aria-label="Breadcrumb">
+	<ol class="govuk-breadcrumbs__list">
+		#if($showPost.isFeedback())
+		<li class="govuk-breadcrumbs__list-item"><a class="govuk-breadcrumbs__link" href="$feedbacklink">$!lang.get('feedback.title')</a></li>
+		#else
+		<li class="govuk-breadcrumbs__list-item"><a class="govuk-breadcrumbs__link" href="$questionslink">$!lang.get('questions.title')</a></li>
+		#end
+		<li class="govuk-breadcrumbs__list-item"><a class="govuk-breadcrumbs__link" href="#getpostlink($showPost false false)">$!utils.abbreviate($!showPost.title, 60)</a></li>
+	</ol>
+</nav>
+
+<div class="govuk-grid-row">
+	<div class="govuk-grid-column-full">
+		<h1 class="govuk-heading-xl sos-mb-0">$!lang.get("revisions.title")</h1>
+		<p class="govuk-body-l">$!showPost.title</p>
+		<p class="govuk-body sos-muted">$!lang.get('results'): $!itemcount.count</p>
+
+		<div class="sos-diff-legend govuk-body-s">
+			<span><span class="diff-ins">$!lang.get('idsk.revisions.added')</span></span>
+			<span><span class="diff-del">$!lang.get('idsk.revisions.removed')</span></span>
+		</div>
+
+		#idskrevisionslist($revisionslist $showPost)
+		#idskpagination($itemcount "page")
+
+		<p class="govuk-body"><a class="govuk-link" href="#getpostlink($showPost false false)">&larr; $!lang.get("backtopost")</a></p>
+	</div>
+</div>

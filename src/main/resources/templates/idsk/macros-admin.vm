@@ -1,0 +1,185 @@
+## =====================================================================
+##  Platforma SOS – makrá správy (admin) podľa ID-SK 3.0
+##  Používajú ich idsk/admin.vm a AJAX partial space.vm.
+##  Triedy spacebox, card-panel, viewbox, editbox, editlink, canceledit,
+##  space-name-box, space-rename-form, delete-space, webhookbox,
+##  toggle-webhook, delete-webhook, permalink, api-key-* sú háčiky scoold.js.
+## =====================================================================
+
+################# OBLASŤ (space) #####################
+## scoold.js: create-space-form vloží vrátené HTML za prvý div v .spaces-wrapper;
+## space-rename-form -> closest(".card-panel").find(".editlink" / ".space-name-box");
+## delete-space -> closest(".spacebox"); editlink -> closest(".viewbox") + nextAll(".editbox")
+#macro(idskspacebox $space)
+#if($space)
+	#set($_spIsDefault = $scooldUtils.isDefaultSpace($space.name))
+	#if($_spIsDefault)#set($_spName = $!lang.get('defaultspace'))#else#set($_spName = $!space.name)#end
+	#set($_spKey = "")#set($_spKey = $_spKey.concat($!space.id).replaceAll("[^A-Za-z0-9_-]", "-"))
+	<div class="spacebox sos-spacebox">
+		<div class="card-panel sos-spacebox__inner">
+			<div class="viewbox sos-spacebox__view">
+				<p class="govuk-body sos-spacebox__name">
+					<a href="$questionslink/space/$!space.id" class="govuk-link space-name-box">$!{_spName}</a>
+				</p>
+				<p class="sos-spacebox__meta">
+					#if($isDefaultSpacePublic && $_spIsDefault)
+						<span class="sos-status sos-status--success">$!lang.get('idsk.admin.space.public')</span>
+					#else
+						<span class="sos-status sos-status--neutral">$!lang.get('idsk.admin.space.private')</span>
+					#end
+					#if($scooldUtils.isAutoAssignedSpace($space))
+						<span class="sos-status sos-status--neutral">$!lang.get('idsk.admin.space.assigned')</span>
+					#end
+				</p>
+				#if(!$_spIsDefault)
+					<a href="#" class="govuk-link editlink sos-spacebox__edit">$!lang.get('edit')<span class="govuk-visually-hidden">: $!{_spName}</span></a>
+				#end
+			</div>
+			#if(!$_spIsDefault)
+			<div class="editbox hide sos-spacebox__editbox">
+				<form method="post" action="$adminlink/rename-space" class="space-rename-form">
+					<input type="hidden" name="space" value="$!space.id">
+					<div class="govuk-form-group">
+						<label class="govuk-label" for="new-space-$!{_spKey}">$!lang.get('name')</label>
+						<input class="govuk-input" type="text" id="new-space-$!{_spKey}" name="newspace" value="$!space.name" maxlength="255" required>
+					</div>
+					<div class="govuk-form-group">
+						<div class="govuk-checkboxes govuk-checkboxes--small" data-module="govuk-checkboxes">
+							<div class="govuk-checkboxes__item">
+								<input class="govuk-checkboxes__input" type="checkbox" id="assigntoall-$!{_spKey}" name="assigntoall"
+									#if($scooldUtils.isAutoAssignedSpace($space))checked="checked"#end
+									#if($scooldUtils.isAutoAssignedSpaceInConfig($space))disabled#end>
+								<label class="govuk-label govuk-checkboxes__label" for="assigntoall-$!{_spKey}">$!lang.get('assignspacetoall')</label>
+							</div>
+							<div class="govuk-checkboxes__item">
+								<input class="govuk-checkboxes__input" type="checkbox" id="needsapproval-$!{_spKey}" name="needsapproval"
+									#if($space.getProperties().getOrDefault("posts_need_approval", $scooldUtils.config.postsNeedApproval()))checked="checked"#end>
+								<label class="govuk-label govuk-checkboxes__label" for="needsapproval-$!{_spKey}">$!lang.get('admin.needapproval')</label>
+							</div>
+						</div>
+					</div>
+					<div class="sos-form-actions">
+						<button class="govuk-button govuk-button__basic" type="submit" data-module="govuk-button">$!lang.get('save')</button>
+						<a href="#" class="govuk-link canceledit">$!lang.get('cancel')</a>
+						<a href="$adminlink/remove-space?space=$!utils.urlEncode($!space.id):$!utils.urlEncode($!space.name)" class="govuk-link delete-space sos-admin-danger">$!lang.get('delete')<span class="govuk-visually-hidden">: $!{_spName}</span></a>
+					</div>
+				</form>
+			</div>
+			#end
+		</div>
+	</div>
+#end
+#end
+
+################# WEBHOOK #####################
+## scoold.js: a.toggle-webhook (dva súrodenci, jeden skrytý), a.delete-webhook -> closest(".webhookbox")
+#macro(idskwebhookbox $webhook)
+	<div class="webhookbox sos-webhook">
+		<div class="sos-webhook__head">
+			<p class="govuk-body sos-webhook__url"><code>$!webhook.targetUrl</code></p>
+			<div class="sos-webhook__actions">
+				#if($webhook.active)#set($_whActive = "")#set($_whInactive = "hide")#else#set($_whActive = "hide")#set($_whInactive = "")#end
+				<a href="$adminlink/toggle-webhook?id=$!webhook.id" class="govuk-link toggle-webhook $_whActive"><span class="sos-status sos-status--success">$!lang.get('idsk.admin.webhook.active')</span> $!lang.get('idsk.admin.webhook.deactivate')</a>
+				<a href="$adminlink/toggle-webhook?id=$!webhook.id" class="govuk-link toggle-webhook $_whInactive"><span class="sos-status sos-status--warning">$!lang.get('idsk.admin.webhook.inactive')</span> $!lang.get('idsk.admin.webhook.activate')</a>
+				<a href="#" class="govuk-link permalink" data-value="$!webhook.secret">$!lang.get('idsk.admin.webhook.copysecret')</a>
+				<a href="$adminlink/delete-webhook?id=$!webhook.id" class="govuk-link delete-webhook sos-admin-danger">$!lang.get('delete')</a>
+			</div>
+		</div>
+		<ul class="sos-admin-codes" aria-label="$!lang.get('admin.eventtriggers')">
+			#if($webhook.create)<li><code>create</code></li>#end
+			#if($webhook.update)<li><code>update</code></li>#end
+			#if($webhook.delete)<li><code>delete</code></li>#end
+			#if($webhook.createAll)<li><code>createAll</code></li>#end
+			#if($webhook.updateAll)<li><code>updateAll</code></li>#end
+			#if($webhook.deleteAll)<li><code>deleteAll</code></li>#end
+			#foreach($event in $webhook.customEvents)<li><code>$!event</code></li>#end
+			#if($webhook.typeFilter)<li><span class="govuk-visually-hidden">$!lang.get('admin.typefilter'): </span><code>type: $!webhook.typeFilter</code></li>#end
+			#if($webhook.propertyFilter)<li><span class="govuk-visually-hidden">$!lang.get('admin.propfilter'): </span><code>$!webhook.propertyFilter</code></li>#end
+			#if(!$webhook.urlEncoded)<li><code>JSON</code></li>#else<li><code>x-www-form-urlencoded</code></li>#end
+		</ul>
+		#if($webhook.tooManyFailures)
+			<p class="govuk-body-s sos-admin-alert"><strong>$!lang.get('idsk.error'):</strong> $!lang.get('idsk.admin.webhook.failures')</p>
+		#end
+	</div>
+#end
+
+################# API KĽÚČE #####################
+## scoold.js (#api-key-form): klonuje prvý (skrytý) .api-key-row, plní .api-key, .api-key-copy,
+## .api-key-expires a k href posledného odkazu (a:last = revoke) pripojí jti.
+## Na /settings: button.prev("div") = obal výberu platnosti.
+#macro(idskapikeyrow $key $value $formActionBase $apiKeysExpirations)
+	#set($keyExpired = false)
+	#if($key && $apiKeysExpirations.get($key) > 0 && $apiKeysExpirations.get($key) < $utils.timestamp())#set($keyExpired = true)#end
+	#if(!$key)#set($hideRow = "hide")#else#set($hideRow = "")#end
+	<tr class="govuk-table__row api-key-row $hideRow">
+		<td class="govuk-table__cell">
+			<span class="api-key-expires">
+				#if($key)
+					#if($apiKeysExpirations.get($key) == 0)
+						$!lang.get('admin.neverexpires')
+					#else
+						#formatdate($apiKeysExpirations.get($key), "YYYY-MM-dd HH:mm")
+						#if($keyExpired) <span class="sos-status sos-status--warning">$!lang.get('idsk.admin.expired')</span>#end
+					#end
+				#end
+			</span>
+		</td>
+		<td class="govuk-table__cell">
+			#set($prefix = "eyJh*******.*******************.*********")
+			#if($value)#set($_kl = $value.length() - 6)#end
+			<code class="api-key sos-admin-break">${prefix}#if($value)$!value.substring($_kl)#end</code>
+		</td>
+		<td class="govuk-table__cell sos-nowrap sos-apikeys__actions">
+			#if(!$value || $value.length() > 10)
+			<a href="#" data-value="$!value" class="govuk-link permalink api-key-copy">$!lang.get('copy')</a>
+			#end
+			<a href="$formActionBase/revoke-api-key?jti=$!key" class="govuk-link api-key-revoke sos-admin-danger">$!lang.get('revoke')</a>
+		</td>
+	</tr>
+#end
+
+#macro(idskapikeyspage $formActionBase $apiKeys $apiKeysExpirations)
+	<form action="$formActionBase/generate-api-key" method="post" id="api-key-form" class="sos-apikeys">
+		#if($formActionBase == $adminlink)
+			#set($_text1 = $utils.markdownToHtml($!lang.get('admin.apikeys.text1')))
+			<div class="govuk-body sos-apikeys__text">$!_text1</div>
+		#else
+			<p class="govuk-body">$!lang.get('admin.apikeys.text2')</p>
+		#end
+		#if($apiKeys.isEmpty())#set($hideTable = "hide")#else#set($hideTable = "")#end
+		<div class="sos-admin-scroll">
+			<table class="govuk-table sos-admin-wide api-key-table $hideTable">
+				<caption class="govuk-table__caption govuk-visually-hidden">$!lang.get('admin.apikeys')</caption>
+				<thead class="govuk-table__head">
+					<tr class="govuk-table__row">
+						<th scope="col" class="govuk-table__header">$!lang.get('admin.expires')</th>
+						<th scope="col" class="govuk-table__header">$!lang.get('admin.apikey') (Bearer token)</th>
+						<th scope="col" class="govuk-table__header"><span class="govuk-visually-hidden">$!lang.get('idsk.actions')</span></th>
+					</tr>
+				</thead>
+				<tbody class="govuk-table__body">
+					#idskapikeyrow("" "" $formActionBase $apiKeysExpirations)
+					#foreach($key in $apiKeys.keySet())
+						#idskapikeyrow($key $apiKeys.get($key) $formActionBase $apiKeysExpirations)
+					#end
+				</tbody>
+			</table>
+		</div>
+		#set($disabled = $formActionBase != $adminlink && $apiKeys.size() >= 1)
+		<div class="sos-form-actions sos-apikeys__generate">
+			<div class="govuk-form-group sos-mb-0 #if($scooldUtils.config.personalTokenExpiresAfterSec != 0 || $disabled)hide#end">
+				<label class="govuk-label" for="validity-period">$!lang.get('admin.validity')</label>
+				<select class="govuk-select" id="validity-period" name="validityHours" required>
+					<option value="1">$!lang.get('idsk.admin.validity.1h')</option>
+					<option value="12" selected="selected">$!lang.get('idsk.admin.validity.12h')</option>
+					<option value="24">$!lang.get('idsk.admin.validity.24h')</option>
+					<option value="48">$!lang.get('idsk.admin.validity.2d')</option>
+					<option value="72">$!lang.get('idsk.admin.validity.3d')</option>
+					<option value="168">$!lang.get('idsk.admin.validity.1w')</option>
+					<option value="720">$!lang.get('idsk.admin.validity.1m')</option>
+					<option value="0">$!lang.get('admin.neverexpires')</option>
+				</select>
+			</div><button type="submit" class="govuk-button govuk-button__basic" data-module="govuk-button" #if($disabled)disabled="disabled"#end>$!lang.get('admin.generate')</button>
+		</div>
+	</form>
+#end

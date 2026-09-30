@@ -1,0 +1,115 @@
+## Platforma SOS – zoznam otázok a formulár "Položiť otázku" (ID-SK)
+#if ($askSelected)
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-two-thirds-from-desktop">
+			<h1 class="govuk-heading-xl">$!lang.get("posts.ask")</h1>
+			<p class="govuk-body-l">$!lang.get('idsk.ask.lead')</p>
+
+			<form method="post" id="ask-question-form">
+				#idskspaceselect(false)
+
+				<div class="govuk-form-group #if($error.get('title'))govuk-form-group--error#end">
+					<label class="govuk-label govuk-body-m" for="title_text">$!lang.get('posts.title')
+						<span class="idsk-required">*</span>
+						<p class="govuk-body-s sos-muted sos-mb-0">$!lang.get('idsk.ask.title.hint')</p>
+					</label>
+					#idskerror($error.get("title"))
+					<div class="govuk-input-container">
+						<input class="govuk-input #if($error.get('title'))govuk-input--error#end" type="text" id="title_text" name="title"
+									 value="$!draftQuestion.title" maxlength="255" minlength="2" required><div class="similar-posts" aria-live="polite"><div class="similar-posts-title govuk-body-s"><strong>$!lang.get('posts.similar')</strong></div></div>
+					</div>
+				</div>
+
+				<div class="govuk-form-group emoji-picker-container #if($error.get('body'))govuk-form-group--error#end">
+					<label class="govuk-label govuk-body-m" for="body_text">$!lang.get('idsk.ask.body')
+						<span class="idsk-required">*</span>
+						<p class="govuk-body-s sos-muted sos-mb-0">$!lang.get('idsk.ask.body.hint')</p>
+					</label>
+					#idskerror($error.get("body"))
+					<textarea class="edit-post" id="body_text" name="body" maxlength="$MAX_TEXT_LENGTH" minlength="10">$!draftQuestion.body</textarea>
+				</div>
+
+				#idsktagsinput("$!defaultTag$!draftQuestion.getTagsString()" "ask-tags")
+
+				#if($authenticated && $scooldUtils.isAnonymityEnabled() && !$authUser.anonymityEnabled)
+				<div class="govuk-form-group">
+					<div class="govuk-checkboxes govuk-checkboxes--small" data-module="govuk-checkboxes">
+						<div class="govuk-checkboxes__item">
+							<input class="govuk-checkboxes__input" type="checkbox" name="anonymous" value="true" id="post-anon-check">
+							<label class="govuk-label govuk-checkboxes__label" for="post-anon-check">$!lang.get('posts.postanonymously')</label>
+						</div>
+					</div>
+				</div>
+				#end
+
+				<div class="sos-form-actions">
+					<button class="govuk-button govuk-button__basic submit-spinner" type="submit" data-module="govuk-button">$!lang.get('posts.ask')</button>
+					<a href="$questionslink" class="govuk-link">$!lang.get('cancel')</a>
+				</div>
+			</form>
+		</div>
+	</div>
+#else
+	#set($tagPath = "")
+	#if($tag)#set($tagPath = "/tag/")#set($tagPath = $tagPath.concat($tag))#end
+	#set($_sortby = "")#if($request.getParameter('sortby'))#set($_sortby = $request.getParameter('sortby'))#end
+
+	#if($tag)
+	<nav class="govuk-breadcrumbs" aria-label="Breadcrumb">
+		<ol class="govuk-breadcrumbs__list">
+			<li class="govuk-breadcrumbs__list-item"><a class="govuk-breadcrumbs__link" href="$questionslink">$!lang.get('questions.title')</a></li>
+			<li class="govuk-breadcrumbs__list-item" aria-current="page">$!tag</li>
+		</ol>
+	</nav>
+	#end
+
+	<div class="sos-page-head">
+		<div>
+			<h1 class="govuk-heading-xl sos-mb-0">
+				#if($tag)$!lang.get("posts.tagged") „$!tag“#else$!lang.get("questions.title")#end
+			</h1>
+			#if($itemcount.count > 0)<p class="govuk-body sos-muted">$!lang.get('results'): $!itemcount.count</p>#end
+		</div>
+		<a href="$questionslink/ask" class="govuk-button govuk-button__basic" role="button">$!lang.get('posts.ask')</a>
+	</div>
+
+	#if($tagDescription)
+		<p class="govuk-body-l">$!tagDescription</p>
+	#else
+		<p class="govuk-body-l">$!lang.get('idsk.questions.lead')</p>
+	#end
+
+	<form class="sos-search-big" role="search" action="$searchlink" method="get">
+		<label for="sos-main-search" class="govuk-visually-hidden">$!lang.get('idsk.search.placeholder')</label>
+		<input id="sos-main-search" class="govuk-input" type="search" name="q" placeholder="$!lang.get('idsk.search.placeholder')" required>
+		<button type="submit" class="govuk-button govuk-button__basic">$!lang.get('search.search')</button>
+	</form>
+
+	<nav aria-label="$!lang.get('idsk.sort')">
+		<ul class="sos-tabs">
+			<li><a href="${questionslink}${tagPath}$!{filter}" #if($_sortby.isEmpty() || $_sortby == "newest")aria-current="page"#end>$!lang.get("newest")</a></li>
+			<li><a href="${questionslink}${tagPath}$!{filter}?sortby=unanswered" #if($_sortby == "unanswered")aria-current="page"#end>$!lang.get("posts.unanswered")</a></li>
+			<li><a href="${questionslink}${tagPath}$!{filter}?sortby=answered" #if($_sortby == "answered")aria-current="page"#end>$!lang.get("posts.answered")</a></li>
+			<li><a href="${questionslink}${tagPath}$!{filter}?sortby=activity" #if($_sortby == "activity")aria-current="page"#end>$!lang.get("posts.updated")</a></li>
+			#if($authenticated)
+				#if($tagFilterOn)
+					<li><a href="$questionslink" aria-current="page">$!lang.get("posts.tagfilter")</a></li>
+				#else
+					<li><a href="$questionslink/favtags">$!lang.get("posts.tagfilter")</a></li>
+				#end
+			#end
+		</ul>
+	</nav>
+
+	#if (!$questionslist || $questionslist.isEmpty())
+		<div class="sos-empty">
+			<p class="govuk-body-l sos-mb-0">$!{lang.get("profile.posts.noquestions")}</p>
+			#if($tagFilterOn && $authenticated && $authUser.favtags.isEmpty())
+				<p class="govuk-body"><a class="govuk-link" href="$settingslink">$!lang.get('settings.nofavtags')</a></p>
+			#end
+		</div>
+	#else
+		#idskquestionslist($questionslist)
+		#idskpagination($itemcount "page")
+	#end
+#end

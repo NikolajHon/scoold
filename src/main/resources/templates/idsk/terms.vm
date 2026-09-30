@@ -1,0 +1,82 @@
+## Platforma SOS – Podmienky používania (ID-SK)
+## Predvolený obsah je osnova so zástupným textom (pôvodný text Scoold.com/Erudika sa pre prevádzkovateľa nehodí).
+## Administrátor môže obsah nahradiť vlastným HTML (Sysprop template:terms, $termshtml).
+## JS (scoold.js): .editlink / .viewbox / .editbox / .canceledit musia byť súrodenci (bez predka s triedou "row").
+#macro(idsktermspage)
+<div class="govuk-notification-banner" role="region" aria-labelledby="sos-terms-banner-title" data-module="govuk-notification-banner">
+	<div class="govuk-notification-banner__header">
+		<h2 class="govuk-notification-banner__title" id="sos-terms-banner-title">$!lang.get("idsk.static.placeholder.title")</h2>
+	</div>
+	<div class="govuk-notification-banner__content">
+		<p class="govuk-notification-banner__heading">$!lang.get("idsk.static.placeholder")</p>
+	</div>
+</div>
+<p class="govuk-body-l">$!lang.get("idsk.terms.intro")</p>
+
+<h2 class="govuk-heading-l">$!lang.get("idsk.terms.h.general")</h2>
+<p class="govuk-body">$!lang.get("idsk.operator")</p>
+<p class="govuk-body sos-placeholder">$!lang.get("idsk.static.tbd")</p>
+
+<h2 class="govuk-heading-l">$!lang.get("idsk.terms.h.account")</h2>
+<p class="govuk-body sos-placeholder">$!lang.get("idsk.static.tbd")</p>
+
+<h2 class="govuk-heading-l">$!lang.get("idsk.terms.h.content")</h2>
+<ul class="govuk-list govuk-list--bullet">
+	<li>$!lang.get("idsk.terms.content.1")</li>
+	<li>$!lang.get("idsk.terms.content.2")</li>
+	<li>$!lang.get("idsk.terms.content.3")</li>
+</ul>
+
+<h2 class="govuk-heading-l">$!lang.get("idsk.terms.h.moderation")</h2>
+<p class="govuk-body sos-placeholder">$!lang.get("idsk.static.tbd")</p>
+
+<h2 class="govuk-heading-l">$!lang.get("idsk.terms.h.liability")</h2>
+<p class="govuk-body sos-placeholder">$!lang.get("idsk.static.tbd")</p>
+
+<h2 class="govuk-heading-l">$!lang.get("idsk.terms.h.changes")</h2>
+<p class="govuk-body sos-placeholder">$!lang.get("idsk.static.tbd")</p>
+
+<p class="govuk-body">$!lang.get("idsk.terms.privacy") <a class="govuk-link" href="$privacylink">$!lang.get("privacy.title")</a>.</p>
+#end
+
+<div class="govuk-grid-row">
+	<div class="govuk-grid-column-two-thirds-from-desktop" id="terms">
+		<h1 class="govuk-heading-xl">$!lang.get("terms.title")</h1>
+		#if($isAdmin)
+		<button type="button" class="govuk-button govuk-button--sec editlink sos-static-edit">$!lang.get('edit')</button>
+		#end
+		<div class="viewbox sos-richtext">
+			#if($termshtml)
+				#set($_terms = $termshtml.getProperty('html'))
+				$!_terms
+			#else
+				#idsktermspage()
+			#end
+		</div>
+		#if($isAdmin)
+		<div class="editbox hide">
+			<form method="post" action="$termslink">
+				<div class="govuk-form-group">
+					<label class="govuk-label govuk-label--s" for="termspage">$!lang.get('idsk.static.html.label')</label>
+					<div id="termspage-hint" class="govuk-hint">$!lang.get('idsk.static.html.hint')</div>
+					<textarea id="termspage" name="termshtml" class="govuk-textarea simple-editor sos-html-editor" rows="20" aria-describedby="termspage-hint">#if($termshtml)$!termshtml.getProperty('html')#else#idsktermspage()#end</textarea>
+				</div>
+				<div class="sos-form-actions">
+					<button type="submit" class="govuk-button govuk-button__basic" data-module="govuk-button">$!lang.get('save')</button>
+					<button type="button" class="govuk-button govuk-button--sec canceledit">$!lang.get('cancel')</button>
+				</div>
+			</form>
+		</div>
+		#end
+	</div>
+	<div class="govuk-grid-column-one-third-from-desktop">
+		<aside class="sos-aside" aria-labelledby="sos-related-title">
+			<h2 class="govuk-heading-s" id="sos-related-title">$!lang.get("idsk.static.related")</h2>
+			<ul class="govuk-list">
+				<li><a class="govuk-link" href="$aboutlink">$!lang.get("about.title")</a></li>
+				<li><a class="govuk-link" href="$privacylink">$!lang.get("privacy.title")</a></li>
+				<li><a class="govuk-link" href="$aboutlink#accessibility">$!lang.get("idsk.accessibility")</a></li>
+			</ul>
+		</aside>
+	</div>
+</div>

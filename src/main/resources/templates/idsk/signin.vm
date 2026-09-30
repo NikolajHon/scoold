@@ -1,0 +1,164 @@
+## Platforma SOS – prihlásenie, registrácia, zabudnuté heslo, 2FA (ID-SK)
+## Primárne prihlásenie je cez Keycloak (OAuth2/OIDC). Heslo a LDAP sú v sekcii "Iné spôsoby prihlásenia".
+#macro(idskfield $id $name $type $label $value $err $_extra)
+	<div class="govuk-form-group #if($err && !$err.isEmpty())govuk-form-group--error#end">
+		<label class="govuk-label govuk-body-m" for="$id">$label</label>
+		#idskerror($err)
+		<input class="govuk-input #if($err && !$err.isEmpty())govuk-input--error#end" id="$id" name="$name" type="$type" value="$!value" $!_extra>
+	</div>
+#end
+#macro(idsksubmit $text)
+	#if($captchakey.isBlank())
+		<button type="submit" class="govuk-button govuk-button__basic" data-module="govuk-button">$text</button>
+	#else
+		<button data-sitekey="$!captchakey" data-callback="onSubmit" data-action="submit" class="govuk-button govuk-button__basic g-recaptcha">$text</button>
+	#end
+#end
+
+<div class="govuk-grid-row">
+<div class="govuk-grid-column-two-thirds-from-desktop sos-signin-box">
+
+#if($register)
+	<h1 class="govuk-heading-xl">#if($resend)$!lang.get("signup.resend")#else$!lang.get("signup.title")#end</h1>
+	#if($nosmtp)
+		<div class="govuk-notification-banner govuk-notification-banner--warning" role="alert">
+			<div class="govuk-notification-banner__content"><p class="govuk-notification-banner__heading">$!lang.get('signup.nosmtp1') $!lang.get('signup.nosmtp2')</p></div>
+		</div>
+	#end
+	#if($verify)
+		<p class="govuk-body-l">$!lang.get('signin.verify.text')</p>
+	#elseif($verified)
+		<p class="govuk-body-l">$!lang.get('signin.verify.done')</p>
+		<a href="$signinlink?email=$!verifiedEmail" class="govuk-button govuk-button__basic" role="button">$!lang.get("signin.title")</a>
+	#else
+		#if($resend)#set($action = "$signinlink/register/resend")#else#set($action = "$signinlink/register")#end
+		<form method="post" action="$action" id="captcha-form">
+			#if(!$resend)
+				#idskfield("name" "name" "text" $lang.get('name') $name "" "required autocomplete='name'")
+			#end
+			#idskfield("email" "email" "email" $lang.get('signup.form.email') $bademail $error.get("email") "required autocomplete='email'")
+			#if(!$resend)
+				#set($_minlen = "required minlength='$MIN_PASS_LENGTH' autocomplete='new-password'")
+				#idskfield("passw" "passw" "password" $lang.get('password') "" $error.get("passw") $_minlen)
+				<p class="govuk-body-s" id="pass-meter-message"></p>
+			#end
+			<div class="leaveblank hide" aria-hidden="true">
+				<input type="text" name="leaveblank" value="" tabindex="-1">
+				<input type="hidden" name="timestamp" value="$utils.timestamp()">
+			</div>
+			#if($resend)#idsksubmit($lang.get('send'))#else#idsksubmit($lang.get('signup.title'))#end
+		</form>
+		#if(!$resend)
+			<p class="govuk-body"><a class="govuk-link" href="$signinlink/register?resend=true">$!lang.get('signup.resend')</a></p>
+		#end
+		<p class="govuk-body"><a class="govuk-link" href="$signinlink">&larr; $!lang.get('signin.title')</a></p>
+	#end
+
+#elseif($iforgot)
+	<h1 class="govuk-heading-xl">$!lang.get("iforgot.title")</h1>
+	#if($nosmtp)
+		<div class="govuk-notification-banner govuk-notification-banner--warning" role="alert">
+			<div class="govuk-notification-banner__content"><p class="govuk-notification-banner__heading">$!lang.get('signup.nosmtp1')</p></div>
+		</div>
+	#end
+	#if($verify)
+		<p class="govuk-body-l">$!lang.get('signin.verify.text')</p>
+	#elseif($verified)
+		<p class="govuk-body-l">$!lang.get('done')</p>
+		<a href="$signinlink" class="govuk-button govuk-button__basic" role="button">$!lang.get("signin.title")</a>
+	#else
+		<form method="post" action="$signinlink/iforgot" id="captcha-form">
+			<input type="hidden" name="token" value="$!token">
+			#idskfield("email" "email" "email" "E-mail" $email $error.get("email") "required autocomplete='email'")
+			#if($token)
+				#set($_minlen = "required minlength='$MIN_PASS_LENGTH' autocomplete='new-password'")
+				#idskfield("newpassword" "newpassword" "password" $lang.get('newpassword') "" $error.get("newpassword") $_minlen)
+				<p class="govuk-body-s" id="pass-meter-message"></p>
+			#end
+			#if($nosmtp)
+				<button type="submit" class="govuk-button govuk-button__basic" disabled aria-disabled="true">#if($token)$!lang.get('change')#else$!lang.get('send')#end</button>
+			#else
+				#if($token)#idsksubmit($lang.get('change'))#else#idsksubmit($lang.get('send'))#end
+			#end
+		</form>
+		<p class="govuk-body"><a class="govuk-link" href="$signinlink">&larr; $!lang.get('signin.title')</a></p>
+	#end
+
+#elseif($twofactor)
+	<h1 class="govuk-heading-xl">$!lang.get("signin.twofactor")</h1>
+	<form method="post" action="$signinlink/two-factor">
+		#if($request.getParameter("reset"))
+			#idskfield("code" "code" "text" $lang.get('signin.backupcode') "" $error.get("code") "required autofocus autocomplete='one-time-code'")
+			<input type="hidden" name="reset" value="true">
+			<button type="submit" class="govuk-button govuk-button__basic" data-module="govuk-button">$!lang.get('confirm')</button>
+		#else
+			#idskfield("code" "code" "text" $lang.get('signin.code') "" $error.get("code") "required autofocus inputmode='numeric' autocomplete='one-time-code'")
+			<button type="submit" class="govuk-button govuk-button__basic" data-module="govuk-button">$!lang.get('continue')</button>
+			<p class="govuk-body"><a class="govuk-link" href="$signinlink/two-factor?reset=true">$!lang.get('signin.usebackupcode')</a></p>
+		#end
+	</form>
+
+#else
+	<h1 class="govuk-heading-xl">$!lang.get("signin.title")</h1>
+	<p class="govuk-body-l">$!lang.get('idsk.signin.lead')</p>
+
+	#set($_hasSso = $oa2LoginEnabled || $oa2secondLoginEnabled || $oa2thirdLoginEnabled)
+	#if($oa2LoginEnabled)
+		<a id="oa2-login-btn" href="$!scooldUtils.oAuth2LoginURL" class="govuk-button govuk-button__basic govuk-button__large" role="button">$!oa2LoginProvider</a>
+	#end
+	#if($oa2secondLoginEnabled)
+		<a id="oa2second-login-btn" href="$!scooldUtils.oAuth2SecondLoginURL" class="govuk-button govuk-button--sec" role="button">$!oa2secondLoginProvider</a>
+	#end
+	#if($oa2thirdLoginEnabled)
+		<a id="oa2third-login-btn" href="$!scooldUtils.oAuth2ThirdLoginURL" class="govuk-button govuk-button--sec" role="button">$!oa2thirdLoginProvider</a>
+	#end
+
+	#macro(idskpasswordforms)
+		#if($passwordLoginEnabled)
+			<form method="post" id="password-login-form">
+				#if($!request.getParameter('code') == "6")
+					<p class="govuk-body"><a class="govuk-link" href="$signinlink/register?resend=true&email=$!request.getParameter('email')">$!lang.get('signup.resend')</a></p>
+				#end
+				#idskfield("email" "username" "email" $lang.get('signup.form.email') $request.getParameter('email') "" "required autocomplete='username'")
+				#idskfield("passw" "password" "password" $lang.get('password') "" "" "required minlength='6' autocomplete='current-password'")
+				<input type="hidden" name="provider" value="password">
+				<input type="hidden" name="access_token" value="password">
+				<button type="submit" class="govuk-button govuk-button__basic" data-module="govuk-button">$!lang.get('signin.title')</button>
+			</form>
+			<ul class="govuk-list">
+				<li><a class="govuk-link" href="$signinlink/register">$!lang.get('signup.title')</a></li>
+				<li><a class="govuk-link" href="$signinlink/iforgot">$!lang.get('iforgot.title')</a></li>
+			</ul>
+		#end
+		#if($ldapLoginEnabled)
+			<h2 class="govuk-heading-m">$!ldapLoginProvider</h2>
+			<form method="post" id="ldap-login-form">
+				#idskfield("ldap-username" "username" "text" $lang.get('name') "" "" "required autocomplete='username'")
+				#idskfield("ldap-password" "password" "password" $lang.get('password') "" "" "required autocomplete='current-password'")
+				<input type="hidden" name="provider" value="ldap">
+				<input type="hidden" name="access_token" value="ldap">
+				<button type="submit" class="govuk-button govuk-button__basic" data-module="govuk-button">$!lang.get('signin.title')</button>
+			</form>
+		#end
+	#end
+
+	#if($passwordLoginEnabled || $ldapLoginEnabled)
+		#if($_hasSso)
+			<details class="govuk-details" #if($!request.getParameter('code') || $!request.getParameter('email'))open#end>
+				<summary class="govuk-details__summary">
+					<span class="govuk-details__summary-text">$!lang.get('idsk.signin.other')</span>
+				</summary>
+				<div class="govuk-details__text">
+					#idskpasswordforms()
+				</div>
+			</details>
+		#else
+			#idskpasswordforms()
+		#end
+	#end
+
+	<p class="govuk-body-s sos-muted">$!lang.get('signup.form.termsofuse')</p>
+#end
+
+</div>
+</div>

@@ -1,0 +1,31 @@
+# Lokálne pre Mac (Apple Silicon): obraz Para nemá arm64 verziu,
+# preto spúšťame Para ako amd64 cez emuláciu (Rosetta).
+services:
+  para:
+    platform: linux/amd64
+    depends_on:
+      - keycloak
+  scoold:
+    # vlastný build z nášho forku (so slovenčinou), natívne arm64
+    image: scoold-sos:dev
+    build: .
+    environment:
+      # pod emuláciou Para štartuje pomalšie, Scoold musí počkať,
+      # kým Para zapíše root kľúče do para-application.conf
+      - BOOT_SLEEP=30
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.3
+    command: ["start-dev", "--import-realm"]
+    ports:
+      - "8081:8080"
+    environment:
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+      # issuer je vždy http://localhost:8081, aj keď Para volá Keycloak
+      # interne cez http://keycloak:8080 (token + userinfo)
+      - KC_HOSTNAME=http://localhost:8081
+      - KC_HOSTNAME_BACKCHANNEL_DYNAMIC=true
+      - KC_HTTP_ENABLED=true
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import:ro

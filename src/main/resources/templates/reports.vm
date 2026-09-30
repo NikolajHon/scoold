@@ -113,7 +113,8 @@
 #end
 
 #if($getreportform)
-	#reportform($type $parentid $link)
+	## Platforma SOS: formulár v modálnom okne v ID-SK štýle (idsk/macros-moderation.vm)
+	#idskreportform($type $parentid $link)
 #else
 	<div class="page-wrapper">
 		<div class="row valign-wrapper">

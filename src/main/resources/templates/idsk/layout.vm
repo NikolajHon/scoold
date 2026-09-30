@@ -1,0 +1,141 @@
+## =====================================================================
+##  Platforma SOS – hlavný layout podľa ID-SK 3.0
+##  Používa sa pre stránky vymenované v base.vm ($idskViews).
+##  Obsah stránky sa vkladá z templates/idsk/$path.
+## =====================================================================
+#set($idskInitials = "")
+#if($authenticated && $authUser.name)
+	#foreach($namePart in $authUser.name.trim().split("\s+"))
+		#if($foreach.count <= 2 && !$namePart.isEmpty())#set($idskInitials = $idskInitials.concat($namePart.substring(0,1).toUpperCase()))#end
+	#end
+#end
+<!DOCTYPE html>
+<html lang="$!currentLocale.language" dir="$!langDirection" class="govuk-template">
+	<head>
+		<title>$!title | $!APPNAME</title>
+		<meta charset="utf-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+		<meta name="theme-color" content="#072c66"/>
+		<meta name="description" content="$!description"/>
+		<meta name="keywords" content="$!keywords"/>
+		<meta property="og:title" content="$!title"/>
+		<meta property="og:type" content="article"/>
+		<meta property="og:url" content="$!CANONICAL_URL"/>
+		<meta property="og:image" content="$!ogimage"/>
+		<meta property="og:description" content="$!description"/>
+		<link rel="manifest" href="$!{CONTEXT_PATH}/manifest.webmanifest"/>
+		<link href="$!{CONTEXT_PATH}/opensearch.xml" title="$!APPNAME" type="application/opensearchdescription+xml" rel="search"/>
+		<link href="$!{CONTEXT_PATH}/feed.xml" rel="alternate" type="application/atom+xml" title="RSS"/>
+		<link href="$!faviconUrl" rel="shortcut icon" sizes="any"/>
+		<link href="$!styleslink/idsk/idsk.min.css?r=$!rev" rel="stylesheet"/>
+		<link href="$!styleslink/easymde.min.css?r=$!rev" rel="stylesheet"/>
+		<link href="$!styleslink/idsk/editor.css?r=$!rev" rel="stylesheet"/>
+		#if ($includeHighlightJS)
+		<link href="$!styleslink/highlighting.css?r=$!rev" rel="stylesheet"/>
+		#end
+		#if($scooldUtils.isApiEnabled() && $request.getServletPath() == "/apidocs")
+		<link rel="stylesheet" type="text/css" href="$!styleslink/swagger-ui.css?r=$!rev"/>
+		<link rel="stylesheet" href="$!styleslink/api.css?r=$!rev"/>
+		#end
+		<link href="$!styleslink/idsk/sos.css?r=$!rev" rel="stylesheet"/>
+		#foreach($externalStyle in $externalStyles)
+		<link href="$!externalStyle" rel="stylesheet"/>
+		#end
+		#if($inlineUserCSS)
+		#set($_inlineCSS = $inlineUserCSS)
+		<style>$!{_inlineCSS}</style>
+		#end
+		#if($scooldUtils.config.isDefaultSpacePublic())
+			#renderJSONLD()
+		#end
+	</head>
+	<body class="govuk-template__body sos-body #if($onboarding)sos-onboarding#end">
+		<script nonce="$cspNonce">document.body.className += ' js-enabled' + ('noModule' in HTMLScriptElement.prototype ? ' govuk-frontend-supported' : '');</script>
+		<a href="#pageMain" class="govuk-skip-link" data-module="govuk-skip-link">$!lang.get('idsk.skip')</a>
+
+		#if($hidenav)#idskheaderminimal()#else#idskheader()#end
+
+		<div class="govuk-width-container">
+			<main class="govuk-main-wrapper sos-main" id="pageMain" role="main" tabindex="-1">
+				#idskinfostrip()
+				#parse("idsk/$path")
+			</main>
+		</div>
+
+		#if(!$hidenav)#idskfooter()#end
+
+		## modálne okno používa scoold.js (napr. formulár "Nahlásiť")
+		<div id="main-modal" class="modal" role="dialog" aria-modal="true">
+			<div class="modal-content">
+				#ajaxloading(false)
+			</div>
+			<div class="modal-footer">
+				<a href="#" class="modal-action modal-close govuk-link">$!lang.get('close')</a>
+			</div>
+		</div>
+
+		<script nonce="$cspNonce" src="$!scriptslink/jquery.min.js?r=$!rev"></script>
+		<script nonce="$cspNonce" src="$!scriptslink/diff_match_patch.js?r=$!rev"></script>
+		## Materialize JS zostáva kvôli scoold.js (čipy, autocomplete, modálne okno); Materialize CSS sa nenačítava
+		<script nonce="$cspNonce" src="$!scriptslink/materialize.min.js?r=$!rev"></script>
+		#if ($includeHighlightJS)
+		<script nonce="$cspNonce" src="$!scriptslink/highlight.min.js?r=$!rev"></script>
+		#end
+		#if($includeMermaid && $includeEmojiPicker)
+		<script nonce="$cspNonce" src="$!scriptslink/mermaid.min.js" defer></script>
+		#end
+		<script nonce="$cspNonce" src="$!scriptslink/easymde.min.js?r=$!rev" defer></script>
+		#set($avatarUploadsEnabledBool = $scooldUtils.isAvatarUploadsEnabled() && $authenticated && $request.getServletPath().startsWith($profilelink))
+		#if($avatarUploadsEnabledBool)
+		<script nonce="$cspNonce" src="$!scriptslink/inline-attachment.min.js?r=$!rev" defer></script>
+		#end
+		#if ($includeLocatorScripts && $includeLocatorScripts == true)
+		<script nonce="$cspNonce" src="$!scriptslink/cities.js?r=$!rev" defer></script>
+		#end
+
+		#set($_welcomeMsg = $scooldUtils.getWelcomeMessage($authUser))
+		#set($_welcomeMsgOnLogin = $scooldUtils.getWelcomeMessageOnLogin($authUser))
+		#set($_welcomeMsgPreLogin = $scooldUtils.getWelcomeMessagePreLogin($authUser, $request))
+		#set($_confirmMsg = $!lang.get('areyousure'))
+		<script nonce="$cspNonce">
+			CONTEXT_PATH = '$CONTEXT_PATH';
+			RTL_ENABLED = ${RTL_ENABLED};
+			IS_ADMIN = ${isAdmin};
+			MAX_TAGS_PER_POST = ${MAX_TAGS_PER_POST};
+			MIN_PASS_LENGTH = ${MIN_PASS_LENGTH};
+			AVATAR_UPLOADS_ENABLED = ${avatarUploadsEnabledBool};
+			IMGUR_CLIENT_ID = '$!IMGUR_CLIENT_ID';
+			IMGUR_ENABLED = ${IMGUR_ENABLED};
+			CLOUDINARY_ENABLED = ${CLOUDINARY_ENABLED};
+			WELCOME_MESSAGE = '$_welcomeMsg';
+			WELCOME_MESSAGE_ONLOGIN = '$_welcomeMsgOnLogin';
+			WELCOME_MESSAGE_PRELOGIN = '$_welcomeMsgPreLogin';
+			CONFIRM_MSG = '$!_confirmMsg';
+			TAG_CREATION_ALLOWED = ${scooldUtils.config.tagCreationAllowed()};
+		</script>
+		<script nonce="$cspNonce" src="$!scriptslink/scoold.js?r=$!rev"></script>
+		#if($includeChartJS)
+		<script nonce="$cspNonce" src="$!scriptslink/chart.umd.min.js?r=$!rev"></script>
+		<script nonce="$cspNonce" src="$!scriptslink/dashboard.js?r=$!rev"></script>
+		#end
+
+		#if ($captchakey && !$captchakey.isBlank())
+		<script nonce="$cspNonce" src="https://www.google.com/recaptcha/api.js"></script>
+		<script nonce="$cspNonce">function onSubmit() {document.getElementById("captcha-form").submit();}</script>
+		#end
+
+		#if($includeEmojiPicker)
+		<script nonce="$cspNonce" src="$!scriptslink/picmo.min.js?r=$!rev"></script>
+		<script nonce="$cspNonce" src="$!scriptslink/picmo-popup.min.js?r=$!rev"></script>
+		<script nonce="$cspNonce" type="module" src="$!scriptslink/emoji-picker.js"></script>
+		#end
+
+		## ID-SK komponenty (hlavička, tlačidlá, textarea, ...)
+		<script nonce="$cspNonce" type="module">
+			import { initAll } from '$!scriptslink/idsk/idsk.min.js?r=$!rev';
+			initAll();
+		</script>
+
+		#externalScripts(false)
+	</body>
+</html>

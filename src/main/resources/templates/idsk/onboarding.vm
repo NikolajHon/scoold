@@ -1,0 +1,246 @@
+## Platforma SOS – úvodné nastavenie inštancie (sprievodca pre administrátora, ID-SK)
+## Layout: $hidenav → minimálna hlavička bez pätičky, body má triedu sos-onboarding.
+## Zachované pre scoold.js / OnboardingController: id formulárov onboarding-*-form, #locale-select, #raw-config,
+## #para-endpoint, #para-access-key, #para-secret-key, #test-para-btn[data-url], #para-test-result,
+## #auth-method-select, #auth-password-fields, #passw + #pass-meter-message, #auth-social-fields,
+## #social-google|facebook|microsoft-fields, #mail-host, #mail-port, #mail-username, #mail-password,
+## input[name=mailTLS|mailSSL], #test-smtp-btn[data-url], #smtp-test-result, #admin-email, button[name=skipSmtp].
+#macro(idskobfield $id $name $type $label $value $hint $_extra)
+	<div class="govuk-form-group govuk-input-component">
+		<label class="govuk-label govuk-body-m" for="$id">
+			$label
+			#if($hint && !$hint.isEmpty())<p class="govuk-body-s sos-muted sos-mb-0" id="${id}-hint">$hint</p>#end
+		</label>
+		<div class="govuk-input-container">
+			<input class="govuk-input" id="$id" name="$name" type="$type" value="$!value" #if($hint && !$hint.isEmpty())aria-describedby="${id}-hint"#end $!_extra>
+		</div>
+	</div>
+#end
+#macro(idskobcheck $id $name $checked $label)
+	<div class="govuk-checkboxes__item">
+		<input class="govuk-checkboxes__input" id="$id" name="$name" type="checkbox" value="true" #if($checked)checked#end>
+		<label class="govuk-label govuk-checkboxes__label" for="$id">$label</label>
+	</div>
+#end
+#macro(idskobnext $text)
+	<div class="sos-form-actions sos-onboarding-actions">
+		<button class="govuk-button govuk-button__basic" type="submit" data-module="govuk-button">$text</button>
+	</div>
+#end
+#macro(idskobidphint $provider)
+	<div class="sos-aside">
+		<ol class="govuk-list govuk-list--number sos-mb-0">
+			<li>$!lang.get('onboarding.auth.hint1')</li>
+			<li>$!lang.get('onboarding.auth.hint2')<br><code class="sos-code">$!{paraEndpoint}/${provider}_auth</code></li>
+			<li>$!lang.get('onboarding.auth.hint3')</li>
+		</ol>
+	</div>
+#end
+
+#set($obStepNames = ["", $lang.get('idsk.onboarding.step.language'), $lang.get('onboarding.backend'), $lang.get('onboarding.sitesetup'), $lang.get('onboarding.smtp')])
+
+<div class="govuk-grid-row">
+	<div class="govuk-grid-column-two-thirds-from-desktop sos-onboarding-col">
+
+		## ---------- priebeh sprievodcu ----------
+		<nav class="sos-onboarding-progress" aria-label="$!lang.get('idsk.onboarding.progress')">
+			<ol class="sos-steps">
+				#foreach ($s in [1..$totalSteps])
+					#set($obStepName = "")
+					#if($s < $obStepNames.size())#set($obStepName = $obStepNames.get($s))#end
+					<li class="sos-steps__item #if($step == $s)sos-steps__item--current#elseif($step > $s)sos-steps__item--done#end">
+						<a href="$onboardinglink/$s" class="sos-steps__link" #if($step == $s)aria-current="step"#end>
+							<span class="sos-steps__num" aria-hidden="true">$s</span>
+							<span class="sos-steps__label">$!obStepName
+								#if($step > $s)<span class="govuk-visually-hidden"> ($!lang.get('idsk.onboarding.done'))</span>#end
+							</span>
+						</a>
+					</li>
+				#end
+			</ol>
+		</nav>
+
+		<span class="govuk-caption-l">$!lang.get('idsk.onboarding.step') $step $!lang.get('idsk.onboarding.of') $totalSteps</span>
+
+		## ---------- 1. jazyk ----------
+		#if ($step == 1)
+			<h1 class="govuk-heading-xl">$!lang.get("onboarding.title")</h1>
+			<p class="govuk-body-l">#if($lang.get('onboarding.step1.desc'))$!lang.get('onboarding.step1.desc')#else$!lang.get('onboarding.lang')#end</p>
+
+			<form method="post" action="$onboardinglink/language" id="onboarding-language-form">
+				<div class="govuk-form-group">
+					<label class="govuk-label govuk-body-m" for="locale-select">$!lang.get("translate.select")</label>
+					<select class="govuk-select" name="locale" id="locale-select">
+						#foreach ($locale in $availableLocales)
+							<option value="$locale.language" #if($locale.language == 'en')selected#end>$!locale.getDisplayName($!locale)</option>
+						#end
+					</select>
+				</div>
+				#idskobnext($lang.get('next'))
+			</form>
+		#end
+
+		## ---------- 2. pripojenie k backendu Para ----------
+		#if ($step == 2)
+			<h1 class="govuk-heading-xl">$!lang.get("onboarding.backend")</h1>
+
+			<form method="post" action="$onboardinglink/para-setup" id="onboarding-para-form">
+				<details class="govuk-details">
+					<summary class="govuk-details__summary">
+						<span class="govuk-details__summary-text">$!lang.get("onboarding.copyconfig")</span>
+					</summary>
+					<div class="govuk-details__text">
+						<div class="govuk-form-group">
+							<label class="govuk-label govuk-body-m" for="raw-config">
+								$!lang.get("onboarding.rawconfig")
+								<p class="govuk-body-s sos-muted sos-mb-0" id="raw-config-hint">$!lang.get("onboarding.rawconfig.hint")</p>
+							</label>
+							<textarea class="govuk-textarea sos-monospace" id="raw-config" name="rawConfig" rows="8" placeholder="scoold.host_url = ..." aria-describedby="raw-config-hint" spellcheck="false"></textarea>
+						</div>
+					</div>
+				</details>
+
+				#if (!$isConnectedToPara)
+					<p class="govuk-body">$!lang.get("onboarding.backend.hint")</p>
+					#idskobfield("para-endpoint" "paraEndpoint" "url" $lang.get("onboarding.para.endpoint") $paraEndpoint "" "required autocomplete='url'")
+					#idskobfield("para-access-key" "paraAccessKey" "text" $lang.get("onboarding.para.accesskey") $paraAccessKey "" "required autocomplete='off' spellcheck='false'")
+					#idskobfield("para-secret-key" "paraSecretKey" "password" $lang.get("onboarding.para.secretkey") $paraSecretKey "" "required autocomplete='off'")
+				#end
+
+				<div class="sos-onboarding-test">
+					#if (!$isConnectedToPara)
+					<button type="button" id="test-para-btn" class="govuk-button govuk-button--sec" data-url="$onboardinglink/test-para-connection">
+						$!lang.get("onboarding.testconnection")
+					</button>
+					#end
+					<div id="para-test-result" class="sos-test-result" role="status" aria-live="polite">#if ($isConnectedToPara)<span class="sos-status sos-status--success">#ico("check-circle" "") $!lang.get("onboarding.para.connected")</span>#end</div>
+				</div>
+
+				#idskobnext($lang.get('next'))
+			</form>
+		#end
+
+		## ---------- 3. nastavenie stránky a administrátora ----------
+		#if ($step == 3)
+			<h1 class="govuk-heading-xl">$!lang.get("onboarding.sitesetup")</h1>
+			<p class="govuk-body-l">$!lang.get("onboarding.sitesetup.hint")</p>
+
+			<form method="post" action="$onboardinglink/site-setup" id="onboarding-site-form">
+				<fieldset class="govuk-fieldset sos-onboarding-fieldset">
+					<legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+						<h2 class="govuk-fieldset__heading">$!lang.get('idsk.onboarding.site')</h2>
+					</legend>
+					#idskobfield("app-name" "appName" "text" $lang.get("onboarding.sitename") $appName "" "maxlength='255'")
+					#idskobfield("host-url" "hostUrl" "url" $lang.get("onboarding.siteurl") $hostUrl $lang.get("onboarding.siteurl.hint") "placeholder='https://' autocomplete='url'")
+					<div class="govuk-form-group">
+						<div class="govuk-checkboxes govuk-checkboxes--small" data-module="govuk-checkboxes">
+							#idskobcheck("sos-public-site" "isDefaultSpacePublic" $isDefaultSpacePublic $lang.get("onboarding.publicsite"))
+							#idskobcheck("sos-dark-mode" "darkMode" false $lang.get('settings.darkmode.text'))
+						</div>
+					</div>
+				</fieldset>
+
+				<fieldset class="govuk-fieldset sos-onboarding-fieldset">
+					<legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+						<h2 class="govuk-fieldset__heading">$!lang.get("onboarding.admin")</h2>
+					</legend>
+					#idskobfield("admin-name" "adminName" "text" $lang.get('name') $adminName "" "maxlength='255' autocomplete='name'")
+					#idskobfield("admin-email" "adminEmail" "text" $lang.get('onboarding.admin.email') $adminEmail $lang.get("onboarding.admin.email.hint") "required autocomplete='email'")
+
+					<div class="govuk-form-group">
+						<label class="govuk-label govuk-body-m" for="auth-method-select">$!lang.get("onboarding.auth.method")</label>
+						<select class="govuk-select" name="authMethod" id="auth-method-select">
+							<option value="password" #if($passwordAuthEnabled)selected#end>$!lang.get('password')</option>
+							<option value="google">Google</option>
+							<option value="facebook">Facebook</option>
+							<option value="microsoft">Microsoft</option>
+						</select>
+					</div>
+
+					<div id="auth-password-fields">
+						<div class="govuk-form-group govuk-input-component sos-pass-group">
+							<label class="govuk-label govuk-body-m" for="passw">$!lang.get('password')</label>
+							<div class="govuk-input-container">
+								## scoold.js (merač sily hesla) prepisuje atribút class tohto poľa – vzhľad drží .sos-pass-group input
+								<input class="govuk-input" id="passw" type="password" name="adminPassword" value="" minlength="$MIN_PASS_LENGTH" autocomplete="new-password" aria-describedby="pass-meter-message">
+							</div>
+							<p class="govuk-body-s sos-muted" id="pass-meter-message" aria-live="polite"></p>
+						</div>
+					</div>
+
+					<div id="auth-social-fields" class="hide">
+						<div id="social-google-fields" class="hide">
+							#idskobidphint("google")
+							#idskobfield("gp-app-id" "gpAppId" "text" "Google Client ID" $gpAppId "" "autocomplete='off' spellcheck='false'")
+							#idskobfield("gp-secret" "gpSecret" "password" "Google Client Secret" $gpSecret "" "autocomplete='off'")
+						</div>
+						<div id="social-facebook-fields" class="hide">
+							#idskobidphint("facebook")
+							#idskobfield("fb-app-id" "fbAppId" "text" "Facebook App ID" $fbAppId "" "autocomplete='off' spellcheck='false'")
+							#idskobfield("fb-secret" "fbSecret" "password" "Facebook App Secret" $fbSecret "" "autocomplete='off'")
+						</div>
+						<div id="social-microsoft-fields" class="hide">
+							#idskobidphint("microsoft")
+							#idskobfield("ms-app-id" "msAppId" "text" "Microsoft Application ID" $msAppId "" "autocomplete='off' spellcheck='false'")
+							#idskobfield("ms-secret" "msSecret" "password" "Microsoft Client Secret" $msSecret "" "autocomplete='off'")
+							#idskobfield("ms-tenant" "msTenant" "password" "Microsoft Tenant ID" $msTenant "" "autocomplete='off'")
+						</div>
+						<div class="govuk-form-group">
+							<div class="govuk-checkboxes govuk-checkboxes--small" data-module="govuk-checkboxes">
+								#idskobcheck("sos-redirect-idp" "redirectToIdp" $redirectToIdp $lang.get("onboarding.auth.redirect"))
+							</div>
+						</div>
+					</div>
+				</fieldset>
+
+				#idskobnext($lang.get('next'))
+			</form>
+		#end
+
+		## ---------- 4. SMTP ----------
+		#if ($step == 4)
+			<h1 class="govuk-heading-xl">$!lang.get("onboarding.smtp")</h1>
+
+			<form method="post" action="$onboardinglink/smtp-setup" id="onboarding-smtp-form">
+				<div id="smtp-fields">
+					#if (!$smtpConfigured)
+						<p class="govuk-body-l">$!lang.get("onboarding.smtp.hint")</p>
+						#set($obMailPort = "587")#if($mailPort && !$mailPort.isEmpty())#set($obMailPort = $mailPort)#end
+						#idskobfield("mail-host" "mailHost" "text" $lang.get("onboarding.smtp.host") $mailHost "" "autocomplete='off' spellcheck='false'")
+						<div class="govuk-form-group govuk-input-component">
+							<label class="govuk-label govuk-body-m" for="mail-port">$!lang.get("onboarding.smtp.port")</label>
+							<div class="govuk-input-container">
+								<input class="govuk-input govuk-input--width-5" id="mail-port" name="mailPort" type="number" inputmode="numeric" value="$!obMailPort">
+							</div>
+						</div>
+						#idskobfield("mail-username" "mailUsername" "text" $lang.get("onboarding.smtp.username") $mailUsername "" "autocomplete='off' spellcheck='false'")
+						#idskobfield("mail-password" "mailPassword" "password" $lang.get("onboarding.smtp.password") $mailPassword "" "autocomplete='off'")
+						<div class="govuk-form-group">
+							<fieldset class="govuk-fieldset">
+								<legend class="govuk-fieldset__legend govuk-fieldset__legend--s">$!lang.get('idsk.onboarding.security')</legend>
+								<div class="govuk-checkboxes govuk-checkboxes--small sos-checkboxes-inline" data-module="govuk-checkboxes">
+									#idskobcheck("sos-mail-tls" "mailTLS" $mailTls "TLS")
+									#idskobcheck("sos-mail-ssl" "mailSSL" $mailSsl "SSL")
+								</div>
+							</fieldset>
+						</div>
+					#end
+					<div class="sos-onboarding-test">
+						#if (!$smtpConfigured)
+						<button type="button" id="test-smtp-btn" class="govuk-button govuk-button--sec" data-url="$onboardinglink/test-smtp-connection">
+							$!lang.get("onboarding.testconnection")
+						</button>
+						#end
+						<div id="smtp-test-result" class="sos-test-result" role="status" aria-live="polite">#if ($smtpConfigured)<span class="sos-status sos-status--success">#ico("check-circle" "") $!lang.get("onboarding.smtp.configured")</span>#end</div>
+					</div>
+				</div>
+				<div class="sos-form-actions sos-onboarding-actions">
+					<button class="govuk-button govuk-button__basic" type="submit" name="skipSmtp" value="false" data-module="govuk-button">
+						$!lang.get("onboarding.finish")
+					</button>
+				</div>
+			</form>
+		#end
+
+	</div>
+</div>

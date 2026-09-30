@@ -1,0 +1,114 @@
+## Platforma SOS – O platforme (ID-SK)
+## - predvolený text bez hlasovania, reputácie a odznakov (požiadavka analytika)
+## - administrátor môže text nahradiť vlastným HTML (Sysprop template:about, $abouthtml)
+## - sekcia id="accessibility" (odkaz z pätičky $aboutlink#accessibility) je vždy mimo upraviteľného obsahu
+## JS (scoold.js): .editlink -> nextAll(".viewbox"/".editbox"), .canceledit -> closest(".editbox").siblings(".viewbox");
+## preto tlačidlo, .viewbox a .editbox musia byť súrodenci a v predkoch nesmie byť trieda "row".
+#macro(idskaboutpage)
+<p class="govuk-body-l">$!lang.get("idsk.about.intro")</p>
+<p class="govuk-body">$!lang.get("about.scoold.2")</p>
+<ul class="govuk-list govuk-list--bullet">
+	<li>$!lang.get("about.scoold.3")</li>
+	<li>$!lang.get("about.scoold.4")</li>
+	<li>$!lang.get("about.scoold.5")</li>
+	<li>$!lang.get("idsk.about.purpose4")</li>
+</ul>
+<p class="govuk-body">$!lang.get("idsk.about.structure")</p>
+
+<h2 class="govuk-heading-l">$!lang.get("questions.title")</h2>
+<p class="govuk-body">$!lang.get("idsk.about.questions.1")</p>
+<p class="govuk-body">$!lang.get("idsk.about.questions.2")</p>
+
+<h2 class="govuk-heading-l">$!lang.get("answers.title")</h2>
+<p class="govuk-body">$!lang.get("idsk.about.answers.1")</p>
+
+<h2 class="govuk-heading-l">$!lang.get("revisions.title")</h2>
+<p class="govuk-body">$!lang.get("about.revisions.1")</p>
+<p class="govuk-body">$!lang.get("about.revisions.2")</p>
+
+<h2 class="govuk-heading-l">$!lang.get("comments.title")</h2>
+<p class="govuk-body">$!lang.get("idsk.about.comments.1")</p>
+
+<h2 class="govuk-heading-l">$!lang.get("reports.title")</h2>
+<p class="govuk-body">$!lang.get("idsk.about.reports.1")</p>
+
+<h2 class="govuk-heading-l">$!lang.get("accounts.title")</h2>
+<p class="govuk-body">$!lang.get("idsk.about.accounts.1")</p>
+<p class="govuk-body"><a class="govuk-link" href="$privacylink">$!lang.get("privacy.title")</a></p>
+
+#if($scooldUtils.isFeedbackEnabled())
+<h2 class="govuk-heading-l">$!lang.get("feedback.title")</h2>
+<p class="govuk-body">$!lang.get("about.feedback.1")</p>
+<p class="govuk-body"><a class="govuk-link" href="$feedbacklink">$!lang.get("feedback.title")</a></p>
+#end
+
+<h2 class="govuk-heading-l">$!lang.get("contact.title")</h2>
+<p class="govuk-body">$!lang.get("idsk.operator")</p>
+<p class="govuk-body sos-placeholder">$!lang.get("idsk.static.contact")</p>
+#end
+
+<div class="govuk-grid-row">
+	<div class="govuk-grid-column-two-thirds-from-desktop" id="about">
+		<h1 class="govuk-heading-xl">$!lang.get("about.title")</h1>
+		#if($isAdmin)
+		<button type="button" class="govuk-button govuk-button--sec editlink sos-static-edit">$!lang.get('edit')</button>
+		#end
+		<div class="viewbox sos-richtext">
+			#if($abouthtml)
+				#set($_about = $abouthtml.getProperty('html'))
+				$!_about
+			#else
+				#idskaboutpage()
+			#end
+		</div>
+		#if($isAdmin)
+		<div class="editbox hide">
+			<form method="post" action="$aboutlink">
+				<div class="govuk-form-group">
+					<label class="govuk-label govuk-label--s" for="aboutpage">$!lang.get('idsk.static.html.label')</label>
+					<div id="aboutpage-hint" class="govuk-hint">$!lang.get('idsk.static.html.hint')</div>
+					<textarea id="aboutpage" name="abouthtml" class="govuk-textarea simple-editor sos-html-editor" rows="20" aria-describedby="aboutpage-hint">#if($abouthtml)$!abouthtml.getProperty('html')#else#idskaboutpage()#end</textarea>
+				</div>
+				<div class="sos-form-actions">
+					<button type="submit" class="govuk-button govuk-button__basic" data-module="govuk-button">$!lang.get('save')</button>
+					<button type="button" class="govuk-button govuk-button--sec canceledit">$!lang.get('cancel')</button>
+				</div>
+			</form>
+		</div>
+		#end
+
+		<section class="sos-a11y" id="accessibility" aria-labelledby="accessibility-title" tabindex="-1">
+			<h2 class="govuk-heading-l" id="accessibility-title">$!lang.get("idsk.accessibility")</h2>
+			<div class="govuk-notification-banner" role="region" aria-labelledby="sos-a11y-banner-title" data-module="govuk-notification-banner">
+				<div class="govuk-notification-banner__header">
+					<h3 class="govuk-notification-banner__title" id="sos-a11y-banner-title">$!lang.get("idsk.static.placeholder.title")</h3>
+				</div>
+				<div class="govuk-notification-banner__content">
+					<p class="govuk-notification-banner__heading">$!lang.get("idsk.a11y.placeholder")</p>
+				</div>
+			</div>
+			<p class="govuk-body">$!lang.get("idsk.a11y.intro")</p>
+			<h3 class="govuk-heading-m">$!lang.get("idsk.a11y.status")</h3>
+			<p class="govuk-body sos-placeholder">$!lang.get("idsk.static.tbd")</p>
+			<h3 class="govuk-heading-m">$!lang.get("idsk.a11y.nonaccessible")</h3>
+			<p class="govuk-body sos-placeholder">$!lang.get("idsk.static.tbd")</p>
+			<h3 class="govuk-heading-m">$!lang.get("idsk.a11y.feedback")</h3>
+			<p class="govuk-body sos-placeholder">$!lang.get("idsk.static.tbd")</p>
+			<h3 class="govuk-heading-m">$!lang.get("idsk.a11y.enforcement")</h3>
+			<p class="govuk-body sos-placeholder">$!lang.get("idsk.static.tbd")</p>
+			<h3 class="govuk-heading-m">$!lang.get("idsk.a11y.date")</h3>
+			<p class="govuk-body sos-placeholder">$!lang.get("idsk.static.tbd")</p>
+		</section>
+	</div>
+	<div class="govuk-grid-column-one-third-from-desktop">
+		<aside class="sos-aside" aria-labelledby="sos-related-title">
+			<h2 class="govuk-heading-s" id="sos-related-title">$!lang.get("idsk.static.related")</h2>
+			<ul class="govuk-list">
+				<li><a class="govuk-link" href="#accessibility">$!lang.get("idsk.accessibility")</a></li>
+				<li><a class="govuk-link" href="$privacylink">$!lang.get("privacy.title")</a></li>
+				<li><a class="govuk-link" href="$termslink">$!lang.get("terms.title")</a></li>
+				<li><a class="govuk-link" href="$languageslink">$!lang.get("translate.select")</a></li>
+			</ul>
+		</aside>
+	</div>
+</div>

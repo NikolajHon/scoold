@@ -1,0 +1,33 @@
+## Platforma SOS – správa nahlásení (moderátori, ID-SK)
+## Formulár nahlásenia (GET /reports/form) sa renderuje mimo layoutu v pôvodnom reports.vm cez #idskreportform.
+<div class="sos-page-head">
+	<div>
+		<h1 class="govuk-heading-xl sos-mb-0">$!lang.get("reports.title")</h1>
+		<p class="govuk-body sos-muted">$!lang.get('results'): $!itemcount.count</p>
+	</div>
+	#if ($isAdmin && (($unapprovedCount && $unapprovedCount > 0) || $itemcount.count > 0))
+	<div class="sos-form-actions sos-reports-admin">
+		#if ($unapprovedCount && $unapprovedCount > 0)
+			<a href="$reportslink/cleanup-unapproved" class="govuk-button govuk-button--sec post-refresh rusure" role="button">$!lang.get('reports.cleanup') ($!unapprovedCount)</a>
+		#end
+		#if ($itemcount.count > 0)
+			<a href="$reportslink/delete-all" class="govuk-button govuk-button__warning post-refresh rusure" role="button">$!lang.get('deleteall')</a>
+		#end
+	</div>
+	#end
+</div>
+
+<p class="govuk-body-l">$!lang.get("about.reports.2")</p>
+
+#if ($itemcount.count == 0 || !$reportslist || $reportslist.isEmpty())
+	<div class="sos-empty">
+		<p class="govuk-body-l sos-mb-0">&#10003; $!lang.get("idsk.reports.empty")</p>
+	</div>
+#else
+	<ul class="sos-list sos-reports">
+		#foreach($showreport in $reportslist)
+			#idskreportbox($showreport)
+		#end
+	</ul>
+	#idskpagination($itemcount "page")
+#end

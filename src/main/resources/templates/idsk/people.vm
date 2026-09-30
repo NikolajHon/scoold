@@ -1,0 +1,234 @@
+## Platforma SOS – zoznam používateľov (ID-SK)
+## Bez reputácie a odznakov; zoradenie podľa dátumu registrácie a mena. Moderátori: vyhľadávanie a filter
+## (POST /people/apply-filter), správcovia: hromadná úprava oblastí/odznakov (POST /people/bulk-edit).
+## Stránkovanie odkazmi (idskpagination) namiesto AJAX "Viac" (#paginate("people")).
+## Háčiky pre scoold.js: #manage-badges-btn (data-alttext), #spaces-selector, #badges-selector.
+
+#set($_sortby = "")#if($request.getParameter('sortby'))#set($_sortby = $request.getParameter('sortby'))#end
+#set($_desc = $request.getParameter('desc'))
+#set($_bulk = $isAdmin && $request.getParameter("bulkedit"))
+#set($_pbase = "")#set($_pbase = $_pbase.concat($peoplelink).concat("?"))#if($_bulk)#set($_pbase = $_pbase.concat("bulkedit=true&"))#end
+
+#macro(idskpeoplelist $people)
+	<ul class="sos-people #if($compactUsersViewEnabled)sos-people--compact#end">
+	#foreach($showFriend in $people)
+		#set($hideSpacesForMods = ($scooldUtils.isMod($showFriend) && $scooldUtils.config.modsAccessAllSpaces()))
+		<li class="sos-person">
+			<img src="#profilepic($showFriend, 'Square50')" class="sos-person__pic" alt="" width="50" height="50">
+			<div class="sos-person__body">
+				#if($_bulk && !$hideSpacesForMods)
+					<div class="govuk-checkboxes govuk-checkboxes--small" data-module="govuk-checkboxes">
+						<div class="govuk-checkboxes__item">
+							<input class="govuk-checkboxes__input" type="checkbox" name="selectedUsers" value="$!showFriend.id" id="sel-$!showFriend.id">
+							<label class="govuk-label govuk-checkboxes__label" for="sel-$!showFriend.id">$!{showFriend.name}</label>
+						</div>
+					</div>
+					<a href="$!showFriend.getProfileLink()" class="govuk-link govuk-body-s">$!lang.get('profile.title')</a>
+				#else
+					<h2 class="govuk-heading-s sos-mb-0"><a href="$!showFriend.getProfileLink()" class="govuk-link">$!{showFriend.name}</a></h2>
+				#end
+				<div class="sos-card-meta">
+					#if ($showFriend.groups == "admins")<span class="sos-status sos-status--neutral">$!lang.get('admin')</span>#end
+					#if ($showFriend.groups == "mods")<span class="sos-status sos-status--neutral">$!lang.get('mod')</span>#end
+					#if($showFriend.lastseen)
+						<span>$!lang.get('profile.about.lastseen'): #formatdate($!{showFriend.lastseen} "")</span>
+					#end
+				</div>
+				#if($_bulk && !$hideSpacesForMods)
+					#set($_first = true)
+					<p class="govuk-body-s sos-mb-0 sos-muted">$!lang.get('spaces.title'): #if(!$showFriend.hasSpaces() || $showFriend.getSpaces().contains($scooldUtils.getDefaultSpace()))$!lang.get('defaultspace')#set($_first = false)#end#foreach($space in $showFriend.allSpaces)#if(!$scooldUtils.isDefaultSpace($space))#if(!$_first), #end$!scooldUtils.getSpaceName($space)#set($_first = false)#end<input type="hidden" name="user-space-ids" value="$!scooldUtils.getSpaceId($space)">#end</p>
+				#end
+				#if(!$isAdmin && $authenticated)
+					#set($_rlink = "$profilelink/$!showFriend.id")
+					<a href="#main-modal" data-fetch="$reportslink/form?parentid=$!showFriend.id&type=$!showFriend.type&link=$!utils.urlEncode($_rlink)" class="govuk-link govuk-body-s modal-trigger sos-person__report">$!lang.get('report')<span class="govuk-visually-hidden">: $!{showFriend.name}</span></a>
+				#end
+			</div>
+		</li>
+	#end
+	</ul>
+#end
+
+<div class="sos-page-head">
+	<div>
+		<h1 class="govuk-heading-xl sos-mb-0">$!lang.get("people.title")</h1>
+		#if($itemcount.count > 0)<p class="govuk-body sos-muted">$!lang.get('results'): $!itemcount.count</p>#end
+	</div>
+	#if($isAdmin)
+		#if($_bulk)
+			<a href="$peoplelink" class="govuk-button govuk-button--sec" role="button">$!lang.get('idsk.people.bulk.close')</a>
+		#else
+			<a href="$peoplelink?bulkedit=true" class="govuk-button govuk-button--sec" role="button">$!lang.get('bulkeditspaces')</a>
+		#end
+	#end
+</div>
+
+#if($currentSpace && !$currentSpace.isEmpty() && !$scooldUtils.isDefaultSpace($currentSpace))
+	<p class="govuk-body">$!lang.get('idsk.space'):
+		<strong>#if($scooldUtils.isAllSpaces($currentSpace))$!lang.get('allspaces')#else$!scooldUtils.getSpaceName($currentSpace)#end</strong>
+	</p>
+#end
+
+## ---------- zoradenie ----------
+<nav aria-label="$!lang.get('idsk.sort')">
+	<ul class="sos-tabs">
+		<li><a href="${_pbase}desc=#if($_sortby.isEmpty() && $_desc != 'false')false#{else}true#end"
+					 #if($_sortby.isEmpty())aria-current="page"#end>$!lang.get("newest")#if($_sortby.isEmpty() && $_desc == 'false') &uarr;<span class="govuk-visually-hidden">($!lang.get('ascending'))</span>#end</a></li>
+		<li><a href="${_pbase}sortby=name&desc=#if($_sortby == 'name' && $_desc == 'false')true#{else}false#end"
+					 #if($_sortby == "name")aria-current="page"#end>$!lang.get("name")#if($_sortby == 'name' && $_desc != 'false') &darr;<span class="govuk-visually-hidden">($!lang.get('descending'))</span>#end</a></li>
+	</ul>
+</nav>
+
+## ---------- vyhľadávanie a filter (moderátori) ----------
+#if($isMod)
+	<form method="get" class="sos-search-big" role="search" action="$peoplelink">
+		<label for="search-users-box" class="govuk-visually-hidden">$!lang.get('idsk.people.search')</label>
+		<input id="search-users-box" class="govuk-input" type="search" name="q" value="$!request.getParameter('q')" placeholder="$!lang.get('idsk.people.search')">
+		#if($_bulk)<input type="hidden" name="bulkedit" value="true">#end
+		<button type="submit" class="govuk-button govuk-button__basic">$!lang.get('search.search')</button>
+	</form>
+
+	#set($_filterActive = !($itemcount.name && $itemcount.name == "default_pager"))
+	<details class="govuk-details sos-people-filter" #if($_filterActive)open#end>
+		<summary class="govuk-details__summary">
+			<span class="govuk-details__summary-text">$!lang.get('filter')#if($_filterActive) ($!lang.get('posts.filtered'))#end</span>
+		</summary>
+		<div class="govuk-details__text">
+			<form method="post" action="$peoplelink/apply-filter">
+				<input type="hidden" name="bulkedit" value="#if($_bulk)true#{else}false#end">
+				<input type="hidden" name="tab" value="$!request.getParameter('sortby')">
+				<div class="govuk-grid-row">
+					<div class="govuk-grid-column-one-half">
+						#foreach($_f in ["havingSelectedSpaces", "notHavingSelectedSpaces"])
+							#if($_f == "havingSelectedSpaces")#set($_fSet = $havingSpaces)#set($_fLabel = $lang.get('users.havingspaces'))#else#set($_fSet = $notHavingSpaces)#set($_fLabel = $lang.get('users.nothavingspaces'))#end
+							<div class="govuk-form-group">
+								<fieldset class="govuk-fieldset">
+									<legend class="govuk-fieldset__legend govuk-fieldset__legend--s">$!_fLabel</legend>
+									<div class="govuk-checkboxes govuk-checkboxes--small" data-module="govuk-checkboxes">
+										<div class="govuk-checkboxes__item">
+											<input class="govuk-checkboxes__input" type="checkbox" name="$_f" id="${_f}-default" value="$scooldUtils.getDefaultSpace()"
+														 #if($_fSet && $_fSet.contains($scooldUtils.getDefaultSpace()))checked#end>
+											<label class="govuk-label govuk-checkboxes__label" for="${_f}-default">$!lang.get('defaultspace')</label>
+										</div>
+										#foreach($space in $authUser.allSpaces)
+										#if(!$scooldUtils.isDefaultSpace($space))
+										<div class="govuk-checkboxes__item">
+											<input class="govuk-checkboxes__input" type="checkbox" name="$_f" id="${_f}-$foreach.count" value="$space"
+														 #if($_fSet && $_fSet.contains($space))checked#end>
+											<label class="govuk-label govuk-checkboxes__label" for="${_f}-$foreach.count">$!scooldUtils.getSpaceName($space)</label>
+										</div>
+										#end
+										#end
+									</div>
+								</fieldset>
+							</div>
+						#end
+					</div>
+					<div class="govuk-grid-column-one-half">
+						<div class="govuk-form-group">
+							<label class="govuk-label govuk-label--s" for="users-filter-sortby">$!lang.get('sorting')</label>
+							<select class="govuk-select" name="sortby" id="users-filter-sortby">
+								<option value="timestamp" #if($itemcount.sortby == "timestamp")selected#end>$!lang.get('posts.creationdate')</option>
+								<option value="name" #if($itemcount.sortby == "name")selected#end>$!lang.get('name')</option>
+								<option value="properties.lastseen" #if($itemcount.sortby == "properties.lastseen")selected#end>$!lang.get('profile.about.lastseen')</option>
+							</select>
+						</div>
+						<div class="govuk-form-group">
+							<div class="govuk-radios govuk-radios--small govuk-radios--inline" data-module="govuk-radios">
+								<div class="govuk-radios__item">
+									<input class="govuk-radios__input" id="users-filter-desc" name="desc" type="radio" value="true" #if($itemcount.desc)checked#end>
+									<label class="govuk-label govuk-radios__label" for="users-filter-desc">$!lang.get('descending')</label>
+								</div>
+								<div class="govuk-radios__item">
+									<input class="govuk-radios__input" id="users-filter-asc" name="desc" type="radio" value="false" #if(!$itemcount.desc)checked#end>
+									<label class="govuk-label govuk-radios__label" for="users-filter-asc">$!lang.get('ascending')</label>
+								</div>
+							</div>
+						</div>
+						<div class="govuk-form-group">
+							<label class="govuk-label govuk-label--s" for="users-filter-limit">$!lang.get('results') ($!lang.get('perpage'))</label>
+							<input class="govuk-input govuk-input--width-4" type="number" id="users-filter-limit" name="limit" min="10" max="250" value="$!itemcount.limit">
+						</div>
+						<div class="govuk-form-group">
+							<div class="govuk-checkboxes govuk-checkboxes--small" data-module="govuk-checkboxes">
+								<div class="govuk-checkboxes__item">
+									<input class="govuk-checkboxes__input compact-view-checkbox" id="users-filter-compact" name="compactViewEnabled" type="checkbox" value="true" #if($compactUsersViewEnabled)checked="checked"#end>
+									<label class="govuk-label govuk-checkboxes__label" for="users-filter-compact">$!lang.get('posts.compactview')</label>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="sos-form-actions">
+					<button type="submit" class="govuk-button govuk-button__basic">$!lang.get('apply')</button>
+					<input type="submit" class="govuk-button govuk-button--sec" name="clear" value="$!lang.get('clear')">
+				</div>
+			</form>
+		</div>
+	</details>
+#end
+
+## ---------- hromadná úprava (správcovia) ----------
+#if($_bulk)
+<form method="post" action="$peoplelink/bulk-edit?$!{request.queryString}" class="sos-people-bulk">
+	<div class="sos-aside">
+		<h2 class="govuk-heading-s">$!lang.get('bulkeditspaces')</h2>
+		<div class="govuk-grid-row">
+			<div class="govuk-grid-column-one-half">
+				<div class="govuk-form-group" id="spaces-selector">
+					<label class="govuk-label govuk-label--s" for="bulk-spaces">$!lang.get('spaces.title')</label>
+					<select class="govuk-select sos-select-multiple" multiple name="selectedSpaces" id="bulk-spaces" size="5">
+						<option selected="selected" value="$scooldUtils.getDefaultSpace()">$!lang.get('defaultspace')</option>
+						#foreach($space in $scooldUtils.allSpacesAdmin)
+						#if(!$scooldUtils.isDefaultSpace($space.id))
+						<option value="$space.id:$space.name">$!space.name</option>
+						#end
+						#end
+					</select>
+				</div>
+				<div class="govuk-form-group hide" id="badges-selector">
+					<label class="govuk-label govuk-label--s" for="bulk-badges">$!lang.get('badges.title')</label>
+					<select class="govuk-select sos-select-multiple" multiple name="selectedBadges" id="bulk-badges" size="5">
+						#if($customBadgesMap)
+						#foreach($badge in $customBadgesMap.values())
+						<option value="$!badge.tag">#if($badge.icon)$!badge.icon #end$!badge.name</option>
+						#end
+						#end
+					</select>
+				</div>
+				<p class="govuk-body-s"><a href="#" class="govuk-link" id="manage-badges-btn" role="button"
+					 data-alttext="$!lang.get('users.managespaces')">$!lang.get('users.managebadges')</a></p>
+			</div>
+			<div class="govuk-grid-column-one-quarter">
+				<div class="govuk-form-group">
+					<label class="govuk-label govuk-label--s" for="bulk-operation">$!lang.get('idsk.people.bulk.operation')</label>
+					<select class="govuk-select" name="operation" id="bulk-operation">
+						<option value="set" selected="selected">$!lang.get('idsk.people.bulk.set')</option>
+						<option value="add">$!lang.get('add')</option>
+						<option value="remove">$!lang.get('remove')</option>
+					</select>
+				</div>
+			</div>
+			<div class="govuk-grid-column-one-quarter">
+				<div class="govuk-form-group">
+					<label class="govuk-label govuk-label--s" for="bulk-selection">$!lang.get('idsk.people.bulk.selection')</label>
+					<select class="govuk-select" name="selection" id="bulk-selection">
+						<option value="selected" selected="selected">$!lang.get('idsk.people.bulk.selected')</option>
+						<option value="all">$!lang.get('idsk.people.bulk.all')</option>
+					</select>
+				</div>
+			</div>
+		</div>
+		<button class="govuk-button govuk-button__basic sos-mb-0" type="submit">$!lang.get('apply')</button>
+	</div>
+#end
+
+#if(!$userlist || $userlist.isEmpty())
+	<div class="sos-empty"><p class="govuk-body-l sos-mb-0">$!{lang.get("search.notfound")}</p></div>
+#else
+	#idskpeoplelist($userlist)
+	#idskpagination($itemcount "page")
+#end
+
+#if($_bulk)
+</form>
+#end

@@ -1,0 +1,574 @@
+## =====================================================================
+##  Platforma SOS – Velocity makrá pre ID-SK 3.0 layout
+##  Registrované ako knižnica v ScooldServer (VM_LIBRARY = macro.vm,idsk/macros.vm).
+##  Všetky makrá majú prefix "idsk", aby nekolidovali s pôvodnými makrami Scooldu.
+##  Triedy ako editlink, viewbox, editbox, delete-post, post-refresh, approve-answer
+##  sú zachované zámerne – viaže sa na ne správanie v scoold.js.
+## =====================================================================
+
+################# HLAVIČKA #####################
+#macro(idskheader)
+<div class="govuk-header__wrapper">
+	<header class="govuk-header idsk-shadow-head" data-module="govuk-header">
+		<div class="govuk-header__container">
+			<div class="idsk-secondary-navigation govuk-width-container">
+				<div class="idsk-secondary-navigation__header">
+					<div class="idsk-secondary-navigation__heading">
+						<div class="idsk-secondary-navigation__heading-title">
+							<span class="idsk-secondary-navigation__heading-mobile">SK</span>
+							<span class="idsk-secondary-navigation__heading-desktop">$!lang.get('idsk.official')</span>
+							<button type="button" class="govuk-button govuk-button--texted--inverse idsk-secondary-navigation__heading-button" aria-expanded="false" aria-label="$!lang.get('idsk.official') $!lang.get('idsk.official.gov')">
+								<span class="idsk-secondary-navigation__heading-mobile">e-Gov</span>
+								<span class="idsk-secondary-navigation__heading-desktop"><b>$!lang.get('idsk.official.gov')</b></span>
+								<span class="material-icons" aria-hidden="true">arrow_drop_down</span>
+							</button>
+						</div>
+						<div class="idsk-secondary-navigation__body hidden">
+							<div class="idsk-secondary-navigation__text">
+								<div>
+									<h3 class="govuk-body-s"><b>$!lang.get('idsk.official.domain.title')</b></h3>
+									<p class="govuk-body-s">$!lang.get('idsk.official.domain.text')</p>
+								</div>
+								<div>
+									<h3 class="govuk-body-s"><b>$!lang.get('idsk.official.secure.title')</b></h3>
+									<p class="govuk-body-s">$!lang.get('idsk.official.secure.text')</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="govuk-predheader govuk-width-container">
+			<div class="govuk-header__logo">
+				<a href="$!{CONTEXT_PATH}/" class="govuk-header__link govuk-header__link--homepage sos-logo-text" title="$!lang.get('idsk.home')">
+					<img src="$!imageslink/idsk/sos-logo.svg?r=$!rev" alt="$!APPNAME – $!lang.get('idsk.home')"/>
+				</a>
+			</div>
+			<div class="govuk-header__btns-search">
+				<div class="govuk-header__mobile-menu desktop-hidden">
+					<button type="button" class="govuk-header__menu-button font-bold govuk-js-header-toggle" aria-controls="navigation" hidden>
+						$!lang.get('idsk.menu')
+					</button>
+				</div>
+
+				<form class="idsk-searchbar__wrapper" role="search" action="$searchlink" method="get">
+					<label for="sos-header-search" class="govuk-visually-hidden">$!lang.get('idsk.search.placeholder')</label>
+					<input id="sos-header-search" class="govuk-input" type="search" name="q" value="$!searchQuery"
+								 placeholder="$!lang.get('idsk.search.placeholder')" required/>
+					<button type="submit" class="govuk-button govuk-button__basic" aria-label="$!lang.get('search.search')">
+						<span class="material-icons" aria-hidden="true">search</span>
+					</button>
+				</form>
+
+				<div class="govuk-header__actionPanel desktop mobile-hidden sos-user-panel">
+					#if($authenticated)
+						<button type="button" class="govuk-button govuk-header__profile_button" title="$!lang.get('idsk.profile')" aria-haspopup="dialog">$!idskInitials</button>
+					#else
+						<a href="${signinlink}?returnto=$!{returnto}" class="govuk-button govuk-button__basic sos-signin-btn" role="button">$!lang.get('signin.title')</a>
+					#end
+				</div>
+			</div>
+		</div>
+
+		<nav id="navigation" aria-label="$!lang.get('idsk.menu')" class="govuk-header__navigation govuk-width-container">
+			#if($authenticated)
+			<dialog id="navigationProfileDialog" aria-label="$!lang.get('idsk.profile')">
+				<div class="govuk-header__profile">
+					<div class="govuk-header__profile__header mobile-hidden">
+						<div class="govuk-heading-m">$!lang.get('profile.title')</div>
+						<button type="button" class="govuk-button govuk-button--texted govuk-header__profile_close_button" aria-label="$!lang.get('close')"><span class="material-icons" aria-hidden="true">close</span></button>
+					</div>
+					<div class="govuk-header__profile__body">
+						<img class="profile sos-profile-avatar" src="#profilepic($authUser, 'Square127')" alt="" width="96" height="96"/>
+						<h4 class="govuk-heading-l">$!authUser.name</h4>
+						<a href="$profilelink" class="govuk-button govuk-button__basic" role="button">$!lang.get('idsk.profile')</a>
+						<a href="$settingslink" class="govuk-button govuk-button--sec" role="button">$!lang.get('settings.title')</a>
+						#if($isAdmin)
+						<a href="$adminlink" class="govuk-button govuk-button--sec" role="button">$!lang.get('administration.title')</a>
+						#end
+						<a href="$signoutlink" class="govuk-button govuk-button--texted govuk-button--texted__warning post-refresh" role="button">$!lang.get('signout')</a>
+					</div>
+				</div>
+			</dialog>
+			#end
+			<span class="text">$!lang.get('idsk.menu')</span>
+			<div class="govuk-header__navigation-list">
+				<ul>
+					#idsknavitem($questionslink $lang.get('questions.title') $questionsSelected)
+					#idsknavitem("$questionslink/ask" $lang.get('posts.ask') $askSelected)
+					#idsknavitem($tagslink $lang.get('tags.title') $tagsSelected)
+					#if($scooldUtils.config.usersDiscoverabilityEnabled($isAdmin))
+						#idsknavitem($peoplelink $lang.get('people.title') $peopleSelected)
+					#end
+					#if($authenticated && $isMod)
+					<li class="govuk-header__navigation-item #if($reportsSelected)govuk-header__navigation-item--active#end" #if($reportsSelected)aria-current="page"#end>
+						<a class="govuk-header__link" href="$reportslink">$!lang.get('reports.title')
+							#if($authUser.countNewReports() > 0)<span class="sos-count">$authUser.countNewReports()</span>#end
+						</a>
+					</li>
+					#end
+					#if($authenticated && ($authUser.hasSpaces() || $isMod))
+						#idskspacesdropdown()
+					#end
+					#if(!$authenticated)
+					<li class="govuk-header__navigation-item desktop-hidden">
+						<a class="govuk-header__link" href="${signinlink}?returnto=$!{returnto}">$!lang.get('signin.title')</a>
+					</li>
+					#end
+				</ul>
+			</div>
+		</nav>
+	</header>
+</div>
+#end
+
+## Hlavička bez navigácie (onboarding, $hidenav)
+#macro(idskheaderminimal)
+<div class="govuk-header__wrapper">
+	<header class="govuk-header idsk-shadow-head" data-module="govuk-header">
+		<div class="govuk-predheader govuk-width-container">
+			<div class="govuk-header__logo">
+				<a href="$!{CONTEXT_PATH}/" class="govuk-header__link govuk-header__link--homepage sos-logo-text" title="$!lang.get('idsk.home')">
+					<img src="$!imageslink/idsk/sos-logo.svg?r=$!rev" alt="$!APPNAME"/>
+				</a>
+			</div>
+		</div>
+	</header>
+</div>
+#end
+
+#macro(idsknavitem $href $text $selected)
+<li class="govuk-header__navigation-item #if($selected && !$selected.isEmpty())govuk-header__navigation-item--active#end" #if($selected && !$selected.isEmpty())aria-current="page"#end>
+	<a class="govuk-header__link" href="$href">$text</a>
+</li>
+#end
+
+#macro(idskspacesdropdown)
+	#if($currentSpace.isEmpty() || $scooldUtils.isDefaultSpace($currentSpace))
+		#set($spaceLabelTxt = $!lang.get('defaultspace'))
+	#elseif($scooldUtils.isAllSpaces($currentSpace))
+		#set($spaceLabelTxt = $!lang.get('allspaces'))
+	#else
+		#set($spaceLabelTxt = $utils.abbreviate($scooldUtils.getSpaceName($currentSpace), 30))
+	#end
+	<li class="govuk-header__navigation-item">
+		<div class="idsk-dropdown__wrapper" data-pseudolabel="$!lang.get('spaces.title')">
+			<a role="button" href="#" class="govuk-button govuk-button--texted idsk-dropdown" aria-label="$!lang.get('spaces.title'): $!spaceLabelTxt" aria-haspopup="listbox">
+				<span>$!lang.get('idsk.space'): $!spaceLabelTxt</span>
+				<span class="material-icons" aria-hidden="true">keyboard_arrow_down</span>
+			</a>
+			<ul class="idsk-dropdown__options idsk-shadow-medium">
+				#if($authUser.hasSpaces())
+				<li class="idsk-dropdown__option idsk-pseudolabel__wrapper #if($scooldUtils.isAllSpaces($currentSpace))active#end" data-pseudolabel="$!lang.get('allspaces')">
+					<a href="$questionslink/space/all?returnto=$!returnto">$!lang.get('allspaces')</a>
+				</li>
+				#end
+				#if($scooldUtils.canAccessSpace($authUser, "default"))
+				<li class="idsk-dropdown__option idsk-pseudolabel__wrapper #if($currentSpace.isEmpty() || $scooldUtils.isDefaultSpace($currentSpace))active#end" data-pseudolabel="$!lang.get('defaultspace')">
+					<a href="$questionslink/space?returnto=$!returnto">$!lang.get('defaultspace')</a>
+				</li>
+				#end
+				#foreach($space in $authUser.allSpaces)
+				#if(!$scooldUtils.isDefaultSpace($space))
+					#set($spaceNameTxt = $scooldUtils.getSpaceName($space))
+					<li class="idsk-dropdown__option idsk-pseudolabel__wrapper #if($!currentSpace == $space)active#end" data-pseudolabel="$!spaceNameTxt">
+						<a href="$questionslink/space/$!scooldUtils.getSpaceId($!space)?returnto=$!returnto">$!utils.abbreviate($!spaceNameTxt, 40)</a>
+					</li>
+				#end
+				#end
+			</ul>
+		</div>
+	</li>
+#end
+
+################# PÄTA #####################
+#macro(idskfooter)
+<footer class="govuk-footer" role="contentinfo">
+	<div class="govuk-width-container">
+		<div class="govuk-footer__meta">
+			<div class="govuk-footer__meta-item govuk-footer__meta-item--grow">
+				<h2 class="govuk-visually-hidden">$!lang.get('idsk.details')</h2>
+				<ul class="govuk-footer__inline-list">
+					<li class="govuk-footer__inline-list-item"><a class="govuk-footer__link" href="$aboutlink">$!lang.get('about.title')</a></li>
+					#if($scooldUtils.isFeedbackEnabled())
+					<li class="govuk-footer__inline-list-item"><a class="govuk-footer__link" href="$feedbacklink">$!lang.get('feedback.title')</a></li>
+					#end
+					<li class="govuk-footer__inline-list-item"><a class="govuk-footer__link" href="$privacylink">$!lang.get('privacy.title')</a></li>
+					<li class="govuk-footer__inline-list-item"><a class="govuk-footer__link" href="$termslink">$!lang.get('terms.title')</a></li>
+					<li class="govuk-footer__inline-list-item"><a class="govuk-footer__link" href="$aboutlink#accessibility">$!lang.get('idsk.accessibility')</a></li>
+					<li class="govuk-footer__inline-list-item"><a class="govuk-footer__link" href="$!{CONTEXT_PATH}/feed.xml">RSS</a></li>
+					<li class="govuk-footer__inline-list-item"><a class="govuk-footer__link" href="$!languageslink">$!lang.get('idsk.language'): $!currentLocale.getDisplayLanguage($currentLocale)</a></li>
+				</ul>
+				#set($_footerHTML = $!scooldUtils.getFooterHTML())
+				#if($_footerHTML && !$_footerHTML.isEmpty())<div class="govuk-body-s">$!_footerHTML</div>#end
+				<span class="govuk-footer__licence-description">
+					$!lang.get('idsk.operator')
+					<br/>
+					$!lang.get('idsk.manual')
+				</span>
+			</div>
+			<div class="govuk-footer__meta-item">
+				<a class="govuk-footer__link govuk-footer__copyright-logo" href="$!{CONTEXT_PATH}/">
+					<img src="$!imageslink/idsk/sos-logo.svg?r=$!rev" alt="$!APPNAME"/>
+				</a>
+			</div>
+		</div>
+	</div>
+</footer>
+#end
+
+################# OZNAMY #####################
+## Nahrádza #infostrip – zachováva triedy infostrip/infostrip-content pre scoold.js (uvítacie správy)
+#macro(idskinfostrip)
+	#if ($request.getParameter("success"))
+		#set($_bannerType = "govuk-notification-banner--success")
+		#set($_bannerTitle = $!lang.get('idsk.success'))
+	#elseif ($request.getParameter("error") || ($error && $error.size() > 0))
+		#set($_bannerType = "govuk-notification-banner--error")
+		#set($_bannerTitle = $!lang.get('idsk.error'))
+	#else
+		#set($_bannerType = "")
+		#set($_bannerTitle = $!lang.get('idsk.info'))
+	#end
+	#if ($request.getParameter("code"))
+		#set($infoStripMsg = $!lang.get("msgcode.${request.getParameter('code')}"))
+		#if(!$infoStripMsg)#set($infoStripMsg = $!lang.get("${request.getParameter('code')}"))#end
+	#else
+		#set($infoStripMsg = $!error.get('error'))
+	#end
+	#if (!$infoStripMsg || $infoStripMsg.trim().isEmpty())#set($_bannerHide = "hide")#else#set($_bannerHide = "")#end
+	<noscript>
+		<div class="govuk-notification-banner govuk-notification-banner--warning" role="alert">
+			<div class="govuk-notification-banner__content"><p class="govuk-notification-banner__heading">$!{lang.get("nojavascript")}</p></div>
+		</div>
+	</noscript>
+	<div class="govuk-notification-banner sos-banner infostrip $!{_bannerType} $!{_bannerHide}" role="region" aria-labelledby="sos-banner-title" data-module="govuk-notification-banner">
+		<div class="govuk-notification-banner__header">
+			<h2 class="govuk-notification-banner__title" id="sos-banner-title">$!_bannerTitle</h2>
+		</div>
+		<div class="govuk-notification-banner__content">
+			<a href="#" class="close-infostrip" aria-label="$!lang.get('close')">&times;</a>
+			#set($_infoStripMsg = $infoStripMsg)
+			<p class="govuk-notification-banner__heading infostrip-content">$!_infoStripMsg</p>
+		</div>
+	</div>
+#end
+
+################# FORMULÁRE #####################
+#macro(idskerror $text)
+#if($text && !$text.isEmpty())
+	<p class="govuk-error-message"><span class="govuk-visually-hidden">$!lang.get('idsk.error'):</span> $text</p>
+#end
+#end
+
+#macro(idskspaceselect $post)
+	#if($authUser.hasSpaces() || $isMod)
+		#if($post)
+			#set($_selSpace = $!scooldUtils.getSpaceId($!post.space))
+		#else
+			#set($_selSpace = $!scooldUtils.getSpaceId($!scooldUtils.getValidSpaceIdExcludingAll($authUser, "", $request)))
+		#end
+		<div class="govuk-form-group #if($error.get('space'))govuk-form-group--error#end">
+			<label class="govuk-label govuk-body-m" for="sos-space-$!post.id">$!lang.get('idsk.space')</label>
+			#idskerror($error.get("space"))
+			<select class="govuk-select" id="sos-space-$!post.id" name="space">
+				#if($scooldUtils.canAccessSpace($authUser, "default"))
+					<option value="$scooldUtils.getDefaultSpace()" #if($scooldUtils.isDefaultSpace($_selSpace))selected#end>$!lang.get('defaultspace')</option>
+				#end
+				#foreach($space in $authUser.allSpaces)
+				#if(!$scooldUtils.isDefaultSpace($space))
+					<option value="$!space" #if($!scooldUtils.getSpaceId($space).equals($_selSpace))selected#end>$!scooldUtils.getSpaceName($space)</option>
+				#end
+				#end
+			</select>
+		</div>
+	#end
+#end
+
+## Pole so štítkami – čipy z Materialize JS; skrytý input MUSÍ nasledovať hneď za .chips (scoold.js)
+#macro(idsktagsinput $value $id)
+	<div class="govuk-form-group #if($error.get('tags'))govuk-form-group--error#end">
+		<label class="govuk-label govuk-body-m" for="$!{id}-input">$!lang.get('tags.title')
+			<p class="govuk-body-s sos-muted sos-mb-0">$!lang.get('idsk.ask.tags.hint')</p>
+		</label>
+		#idskerror($error.get("tags"))
+		<div class="chips chips-autocomplete" title="$!lang.get('tags.title')"></div><input type="hidden" name="tags" value="$!value" id="$!id">
+	</div>
+#end
+
+################# ŠTÍTKY A STAVY #####################
+#macro(idskstatus $post)
+	#if($post.answerid && !$post.answerid.isEmpty())
+		<span class="sos-status sos-status--success">$!lang.get('posts.answered')</span>
+	#elseif(!$post.answercount || $post.answercount == 0)
+		<span class="sos-status sos-status--neutral">$!lang.get('posts.unanswered')</span>
+	#end
+	#if($post.type == "unapprovedquestion" || $post.type == "unapprovedreply")
+		<span class="sos-status sos-status--warning">$!lang.get('posts.unapproved')</span>
+	#end
+	#if($post.deprecated)
+		<span class="sos-status sos-status--warning">$!lang.get('deprecated')</span>
+	#end
+	#if($post.isClosed())
+		<span class="sos-status sos-status--neutral">$!lang.get('idsk.closed')</span>
+	#end
+#end
+
+#macro(idsktags $post)
+	#foreach($tagTxt in $post.tags)
+		#if($tagTxt && $tagTxt.trim() != "")
+			<a href="$questionslink/tag/$!utils.urlEncode($tagTxt)" class="sos-tag">$!tagTxt</a>
+		#end
+	#end
+#end
+
+#macro(idskperson $showu)
+	#if($showu && ($scooldUtils.anonAuthUser.id == $showu.id || $scooldUtils.anonAuthUser.id.replaceAll(':profile$', '') == $showu.id))
+		<span>$!lang.get('anonymous')</span>
+	#elseif($showu && $showu.id)
+		<a class="govuk-link" href="$profilelink/$!showu.id.replaceAll(':profile$', '')/#stripstr($!showu.name)">$!showu.name</a>
+		#if($showu.groups == "admins")<span class="sos-status sos-status--neutral">$!lang.get('admin')</span>#end
+		#if($showu.groups == "mods")<span class="sos-status sos-status--neutral">$!lang.get('mod')</span>#end
+	#elseif($showu.name)
+		<span>$!showu.name</span>
+	#else
+		<span>$!lang.get("profile.deleted")</span>
+	#end
+#end
+
+################# ZOZNAM OTÁZOK #####################
+#macro(idskquestionslist $posts)
+	#set($_showSpace = $scooldUtils.isAllSpaces($currentSpace) || $isMod)
+	<ul class="sos-list">
+	#foreach($showpost in $posts)
+		#set($_qlink = "#getpostlink($showpost false false)")
+		#set($_acount = $showpost.answercount)
+		#if(!$_acount)#set($_acount = 0)#end
+		<li id="$!showpost.id" #if($showpost.id == $request.getParameter("deleted"))class="hide"#end>
+			<article class="idsk-card">
+				<div class="idsk-card__content">
+					#if($_showSpace && !$scooldUtils.isDefaultSpace($showpost.space))
+						<span class="sos-card-space">$!scooldUtils.getSpaceName($showpost.space)</span>
+					#end
+					<div class="idsk-card__heading">
+						<h2 class="govuk-heading-s sos-mb-0"><a href="$!_qlink" class="govuk-link">$!showpost.title</a></h2>
+					</div>
+					#set($plainTxt = $utils.stripHtml($utils.markdownToHtml($utils.stripHtml($!showpost.body))))
+					<div class="idsk-card__description">$!utils.abbreviate($plainTxt, 220)</div>
+					<div class="sos-card-meta">
+						#idskstatus($showpost)
+						<span>$!lang.get('idsk.answercount'): <strong>$!_acount</strong></span>
+						<span><time datetime="$!utils.formatDate($showpost.timestamp, 'yyyy-MM-dd', $currentLocale)">#formatdate($showpost.timestamp "")</time></span>
+						#if(!$request.requestURI.startsWith("$!CONTEXT_PATH/profile"))
+							<span>#idskperson($showpost.author)</span>
+						#end
+					</div>
+					#if($showpost.tags && !$showpost.tags.isEmpty())
+					<div>#idsktags($showpost)</div>
+					#end
+				</div>
+			</article>
+		</li>
+	#end
+	</ul>
+#end
+
+################# STRÁNKOVANIE #####################
+## Klasické stránkovanie odkazmi (bez AJAX "Viac"), prístupné aj bez JS
+#macro(idskpagination $pager $pageparam)
+#if($pager && $pager.count > $pager.limit)
+	#set($pgBase = "")#set($pgBase = $pgBase.concat($request.requestURI))#if($request.queryString)#set($pgBase = $pgBase.concat("?").concat($request.queryString))#end
+	#set($_rexp = "${pageparam}=\d+&?")
+	#set($pgBase = $pgBase.replaceAll($_rexp, ""))
+	#set($pgBase = $pgBase.replaceAll("(&|\?)$", ""))
+	#if($pgBase.contains("?"))#set($pgSep = "&")#else#set($pgSep = "?")#end
+	#set($_pages = $pager.count / $pager.limit)
+	#if($pager.count % $pager.limit > 0)#set($_pages = $_pages + 1)#end
+	#if($_pages > $MAX_PAGES)#set($_pages = $MAX_PAGES)#end
+	#set($_cur = $pager.page)
+	#if($_cur < 1)#set($_cur = 1)#end
+	#set($_from = $_cur - 2)
+	#if($_from < 1)#set($_from = 1)#end
+	#set($_to = $_cur + 2)
+	#if($_to > $_pages)#set($_to = $_pages)#end
+	<nav class="sos-pagination" aria-label="$!lang.get('idsk.pagination')">
+		<ul>
+			#if($_cur > 1)
+				#set($_p = $_cur - 1)
+				<li><a href="${pgBase}${pgSep}${pageparam}=$_p" rel="prev">&lsaquo; $!lang.get('idsk.prev')</a></li>
+			#end
+			#if($_from > 1)
+				<li><a href="${pgBase}${pgSep}${pageparam}=1">1</a></li>
+				#if($_from > 2)<li><span class="sos-pagination__gap">&hellip;</span></li>#end
+			#end
+			#foreach($_p in [$_from..$_to])
+				#if($_p == $_cur)
+					<li><span aria-current="page">$_p</span></li>
+				#else
+					<li><a href="${pgBase}${pgSep}${pageparam}=$_p">$_p</a></li>
+				#end
+			#end
+			#if($_to < $_pages)
+				#if($_to < $_pages - 1)<li><span class="sos-pagination__gap">&hellip;</span></li>#end
+				<li><a href="${pgBase}${pgSep}${pageparam}=$_pages">$_pages</a></li>
+			#end
+			#if($_cur < $_pages)
+				#set($_p = $_cur + 1)
+				<li><a href="${pgBase}${pgSep}${pageparam}=$_p" rel="next">$!lang.get('idsk.next') &rsaquo;</a></li>
+			#end
+		</ul>
+	</nav>
+#end
+#end
+
+################# PRÍSPEVOK (otázka / odpoveď) #####################
+#macro(idskpostbox $showpost $parentpost)
+#set($actionlink = "#getpostlink($showpost false true)")
+#if($showpost.id != $!utils.urlEncode($showpost.id))
+	$showpost.setId($!utils.urlEncode($showpost.id))
+#end
+#if($request.getServletPath().endsWith("/edit-post-$!showpost.id"))#set($resumeEditPost = "resume-editing")#else#set($resumeEditPost = "")#end
+#set($_isAccepted = $showpost.isReply() && $showpost.id.equals($parentpost.answerid))
+<div id="$!showpost.id" class="postbox $!{showpost.type}box $!{resumeEditPost} sos-post #if($showpost.isReply())sos-post--answer#end #if($_isAccepted)sos-post--accepted#end #if($showpost.type == 'unapprovedreply')sos-post--unapproved#end">
+	<div id="post-$!showpost.id" class="viewbox">
+		#if($_isAccepted)
+			<p class="sos-accepted-label govuk-body sos-mt-0">&#10003; $!lang.get('idsk.accepted')</p>
+		#end
+		<div class="postbody">
+			#set($_bodyHtml = $utils.markdownToHtml($!showpost.body, $!htmlInMarkdownEnabled))
+			$!{_bodyHtml}
+		</div>
+
+		<div class="sos-post-meta">
+			<span>#idskperson($showpost.author)</span>
+			<span>$!lang.get("posts.posted") #formatdate($showpost.timestamp "")</span>
+			#if($showpost.lasteditby)
+				#if($showpost.revisionid)
+					<a class="govuk-link" href="$revisionslink/$!showpost.id">$!lang.get("posts.edited") #formatdate($showpost.lastedited "")</a>
+				#else
+					<span>$!lang.get("posts.edited") #formatdate($showpost.lastedited "")</span>
+				#end
+			#end
+			#if($showpost.type == "unapprovedreply")<span class="sos-status sos-status--warning">$!lang.get('posts.unapproved')</span>#end
+		</div>
+
+		<div class="sos-post-actions" aria-label="$!lang.get('idsk.actions')">
+			#if($authenticated && $showpost.isReply() && $scooldUtils.canApproveReply($parentpost, $authUser))
+				<a href="$questionlink/$!parentpost.id/approve/$!showpost.id" class="govuk-link approve-answer #if($_isAccepted)green-text#end">$!lang.get('idsk.markaccepted')</a>
+			#end
+			#if($scooldUtils.isMod($authUser) && ($showpost.type == "unapprovedreply" || $showpost.type == "unapprovedquestion"))
+				<a href="$!actionlink/$showpost.id/approve" class="govuk-link post-refresh">$!lang.get("posts.approve")</a>
+			#end
+			#if($scooldUtils.canEdit($showpost, $authUser))
+				<a href="#" class="govuk-link editlink">$!lang.get("edit")</a>
+			#end
+			#if($canComment && !$showpost.isFeedback())
+				<a href="#" class="govuk-link next-div-toggle add-comment-link" aria-controls="sos-comment-$!showpost.id">$!lang.get("comments.write")</a>
+			#end
+			#if($authenticated && $showpost.isQuestion())
+				<a href="#post-$!showpost.id" class="govuk-link follow-thread-bell">$!lang.get('posts.emailme')</a>
+			#end
+			#if($scooldUtils.isMod($authUser) && $showpost.isQuestion())
+				#if($parentpost.isClosed())
+					<a href="$!actionlink/$showpost.id/close" class="govuk-link post-refresh">$!lang.get("reopen")</a>
+				#else
+					<a href="$!actionlink/$showpost.id/close" class="govuk-link post-refresh-ask">$!lang.get("close")</a>
+				#end
+				#if($parentpost.deprecated)
+					<a href="$!actionlink/$showpost.id/deprecate" class="govuk-link post-refresh-ask">$!lang.get("undeprecate")</a>
+				#else
+					<a href="$!actionlink/$showpost.id/deprecate" class="govuk-link post-refresh-ask">$!lang.get("deprecate")</a>
+				#end
+			#end
+			#if(!$authenticated || ($authenticated && $showpost.creatorid != $authUser.id))
+				#set($_rlink = "$questionlink/$!showpost.id")
+				#set($_rhref = "$reportslink/form?parentid=$!showpost.id&type=$!showpost.type&link=$utils.urlEncode($_rlink)")
+				<a href="#main-modal" data-fetch="$!{_rhref}" class="govuk-link modal-trigger">$!lang.get('report')</a>
+			#end
+			#if($scooldUtils.canDelete($showpost, $authUser, $parentpost.answerid) || $scooldUtils.isMod($authUser))
+				<a href="$!actionlink/$showpost.id/delete" class="govuk-link delete-post">$!lang.get("delete")</a>
+			#end
+		</div>
+
+		<div class="comments post-comments">
+			<div class="page-content">
+				#foreach($_c in $showpost.comments)
+					#idskcommentbox($_c)
+				#end
+			</div>
+		</div>
+		#if($canComment)
+			#idskcommentform($showpost.id)
+		#end
+	</div>
+
+	#if($scooldUtils.canEdit($showpost, $authUser))
+	<div class="editbox hide">
+		<form method="post" action="$questionlink/$!showpost.id/edit" class="edit-post-form">
+			#if(!$showpost.isReply())
+				<div class="govuk-form-group">
+					<label class="govuk-label govuk-body-m" for="edit-$!{showpost.id}-title">$!lang.get('posts.title')</label>
+					<input class="govuk-input" type="text" name="title" maxlength="255" minlength="2" value="$!showpost.title" id="edit-$!{showpost.id}-title" required>
+				</div>
+			#end
+			<div class="govuk-form-group emoji-picker-container">
+				<label class="govuk-label govuk-body-m" for="edit-$!{showpost.id}-body">$!lang.get('idsk.ask.body')</label>
+				<textarea class="edit-post" name="body" maxlength="$MAX_TEXT_LENGTH" minlength="10" id="edit-$!{showpost.id}-body">$!showpost.body</textarea>
+			</div>
+			#if(!$showpost.isReply())
+				#idsktagsinput($!showpost.tagsString "edit-$!{showpost.id}-tags")
+				#idskspaceselect($showpost)
+			#end
+			<div class="sos-form-actions">
+				<button class="govuk-button govuk-button__basic" type="submit" data-module="govuk-button">$!lang.get('save')</button>
+				<button type="button" class="govuk-button govuk-button--sec canceledit">$!lang.get('cancel')</button>
+			</div>
+		</form>
+	</div>
+	#end
+</div>
+#end
+
+#macro(idskanswers $answers $parentpost)
+	#foreach($answer in $answers)
+		#idskpostbox($answer $parentpost)
+	#end
+#end
+
+################# KOMENTÁRE #####################
+## Bez hlasovania; triedy commentbox, comment-text, delete-comment sú pre scoold.js
+#macro(idskcommentbox $showcomment)
+<div class="commentbox" id="comment-$!showcomment.id">
+	#if($showcomment.hidden)
+		<span class="sos-muted">$!lang.get("comments.hidden")</span>
+		<a href="#" class="govuk-link show-comment">$!lang.get("comments.show")</a>
+	#end
+	<div class="comment-text #if($showcomment.hidden)hide#end">
+		#set($_commentHtml = $utils.markdownToHtml($!showcomment.comment))
+		$!{_commentHtml}
+		#set($_cAuthor = {'name': $!showcomment.authorName, 'id': $showcomment.creatorid})
+		&mdash; <span class="comment-author">#idskperson($_cAuthor)</span>,
+		<span class="comment-meta">#formatdate($showcomment.timestamp '')</span>
+		#if($authenticated && ($showcomment.creatorid == $authUser.id || $scooldUtils.isMod($authUser)))
+			<a href="$commentlink/$!showcomment.id/delete" class="govuk-link delete-comment">$!lang.get('delete')</a>
+		#end
+	</div>
+</div>
+#end
+
+#macro(idskcommentform $parentid)
+#set($_maxplus1 = $!maxCommentLength + 1)
+<div class="newcommentform hide" id="sos-comment-$!parentid">
+	<form method="post" action="$commentlink" class="new-comment-form">
+		<div class="govuk-form-group">
+			<label class="govuk-label govuk-body-s" for="new-comment-$!{parentid}">$!lang.get('comment.title')
+				<span class="sos-muted">($!lang.get('comments.markdown'))</span></label>
+			<input class="govuk-input" id="new-comment-$!{parentid}" type="text" name="comment" maxlength="$!_maxplus1" required>
+		</div>
+		<input type="hidden" name="parentid" value="$!parentid">
+		<button type="submit" class="govuk-button govuk-button--sec new-comment-btn">$!lang.get('add')</button>
+	</form>
+</div>
+#end

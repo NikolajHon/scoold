@@ -1,0 +1,83 @@
+## Platforma SOS – Ochrana osobných údajov (ID-SK)
+## Predvolený obsah je osnova so zástupným textom (pôvodný text Scoold.com/Erudika sa pre prevádzkovateľa nehodí).
+## Administrátor môže obsah nahradiť vlastným HTML (Sysprop template:privacy, $privacyhtml).
+## JS (scoold.js): .editlink / .viewbox / .editbox / .canceledit musia byť súrodenci (bez predka s triedou "row").
+#macro(idskprivacypage)
+<div class="govuk-notification-banner" role="region" aria-labelledby="sos-privacy-banner-title" data-module="govuk-notification-banner">
+	<div class="govuk-notification-banner__header">
+		<h2 class="govuk-notification-banner__title" id="sos-privacy-banner-title">$!lang.get("idsk.static.placeholder.title")</h2>
+	</div>
+	<div class="govuk-notification-banner__content">
+		<p class="govuk-notification-banner__heading">$!lang.get("idsk.static.placeholder")</p>
+	</div>
+</div>
+<p class="govuk-body-l">$!lang.get("idsk.privacy.intro")</p>
+
+<h2 class="govuk-heading-l">$!lang.get("idsk.privacy.h.controller")</h2>
+<p class="govuk-body">$!lang.get("idsk.operator")</p>
+<p class="govuk-body sos-placeholder">$!lang.get("idsk.static.tbd")</p>
+
+<h2 class="govuk-heading-l">$!lang.get("idsk.privacy.h.data")</h2>
+<ul class="govuk-list govuk-list--bullet">
+	<li>$!lang.get("idsk.privacy.data.1")</li>
+	<li>$!lang.get("idsk.privacy.data.2")</li>
+	<li>$!lang.get("idsk.privacy.data.3")</li>
+</ul>
+
+<h2 class="govuk-heading-l">$!lang.get("idsk.privacy.h.purpose")</h2>
+<p class="govuk-body sos-placeholder">$!lang.get("idsk.static.tbd")</p>
+
+<h2 class="govuk-heading-l">$!lang.get("idsk.privacy.h.retention")</h2>
+<p class="govuk-body sos-placeholder">$!lang.get("idsk.static.tbd")</p>
+
+<h2 class="govuk-heading-l">$!lang.get("idsk.privacy.h.recipients")</h2>
+<p class="govuk-body sos-placeholder">$!lang.get("idsk.static.tbd")</p>
+
+<h2 class="govuk-heading-l">$!lang.get("idsk.privacy.h.rights")</h2>
+<p class="govuk-body">$!lang.get("idsk.privacy.rights")</p>
+
+<h2 class="govuk-heading-l">$!lang.get("idsk.privacy.h.cookies")</h2>
+<p class="govuk-body">$!lang.get("idsk.privacy.cookies")</p>
+#end
+
+<div class="govuk-grid-row">
+	<div class="govuk-grid-column-two-thirds-from-desktop" id="privacy">
+		<h1 class="govuk-heading-xl">$!lang.get("privacy.title")</h1>
+		#if($isAdmin)
+		<button type="button" class="govuk-button govuk-button--sec editlink sos-static-edit">$!lang.get('edit')</button>
+		#end
+		<div class="viewbox sos-richtext">
+			#if($privacyhtml)
+				#set($_privacy = $privacyhtml.getProperty('html'))
+				$!_privacy
+			#else
+				#idskprivacypage()
+			#end
+		</div>
+		#if($isAdmin)
+		<div class="editbox hide">
+			<form method="post" action="$privacylink">
+				<div class="govuk-form-group">
+					<label class="govuk-label govuk-label--s" for="privacypage">$!lang.get('idsk.static.html.label')</label>
+					<div id="privacypage-hint" class="govuk-hint">$!lang.get('idsk.static.html.hint')</div>
+					<textarea id="privacypage" name="privacyhtml" class="govuk-textarea simple-editor sos-html-editor" rows="20" aria-describedby="privacypage-hint">#if($privacyhtml)$!privacyhtml.getProperty('html')#else#idskprivacypage()#end</textarea>
+				</div>
+				<div class="sos-form-actions">
+					<button type="submit" class="govuk-button govuk-button__basic" data-module="govuk-button">$!lang.get('save')</button>
+					<button type="button" class="govuk-button govuk-button--sec canceledit">$!lang.get('cancel')</button>
+				</div>
+			</form>
+		</div>
+		#end
+	</div>
+	<div class="govuk-grid-column-one-third-from-desktop">
+		<aside class="sos-aside" aria-labelledby="sos-related-title">
+			<h2 class="govuk-heading-s" id="sos-related-title">$!lang.get("idsk.static.related")</h2>
+			<ul class="govuk-list">
+				<li><a class="govuk-link" href="$aboutlink">$!lang.get("about.title")</a></li>
+				<li><a class="govuk-link" href="$termslink">$!lang.get("terms.title")</a></li>
+				<li><a class="govuk-link" href="$aboutlink#accessibility">$!lang.get("idsk.accessibility")</a></li>
+			</ul>
+		</aside>
+	</div>
+</div>

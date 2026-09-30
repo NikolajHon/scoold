@@ -39,3 +39,6 @@ taillogs-demo.sh
 
 AGENTS.md
 /nbproject/
+
+# Platforma SOS – lokálne konfigurácie so secretmi
+scoold-application.conf

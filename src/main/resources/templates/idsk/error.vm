@@ -1,0 +1,51 @@
+## Platforma SOS – chybová stránka (ID-SK / GOV.UK vzor: h1 + vysvetlenie + odkazy)
+## Model: $code (reťazec z URL /error/{code}), $status, $reason (servlet error atribúty).
+#set($errTitle = "")
+#set($errBody = "")
+#if($code == "400")
+	#set($errTitle = $lang.get("idsk.error.title.400"))#set($errBody = $lang.get("idsk.error.body.400"))
+#elseif($code == "401")
+	#set($errTitle = $lang.get("idsk.error.title.401"))#set($errBody = $lang.get("idsk.error.body.401"))
+#elseif($code == "403")
+	#set($errTitle = $lang.get("idsk.error.title.403"))#set($errBody = $lang.get("idsk.error.body.403"))
+#elseif($code == "503")
+	#set($errTitle = $lang.get("idsk.error.title.503"))#set($errBody = $lang.get("idsk.error.body.503"))
+#elseif($code == "500")
+	#set($errTitle = $lang.get("idsk.error.title.500"))#set($errBody = $lang.get("idsk.error.body.500"))
+#else
+	#set($errTitle = $lang.get("idsk.error.title"))#set($errBody = $lang.get("idsk.error.body.500"))
+#end
+<div class="govuk-grid-row">
+	<div class="govuk-grid-column-two-thirds-from-desktop sos-errorpage">
+		<h1 class="govuk-heading-xl">$!errTitle</h1>
+		#if($code == "500" && $scooldUtils.looksLikeNotConnectedToPara($reason))
+			<div class="govuk-notification-banner govuk-notification-banner--error" role="alert" aria-labelledby="sos-error-banner-title" data-module="govuk-notification-banner">
+				<div class="govuk-notification-banner__header">
+					<h2 class="govuk-notification-banner__title" id="sos-error-banner-title">$!lang.get("idsk.error")</h2>
+				</div>
+				<div class="govuk-notification-banner__content">
+					<p class="govuk-notification-banner__heading">$!lang.get("idsk.error.nopara")</p>
+				</div>
+			</div>
+		#end
+		<p class="govuk-body">$!errBody</p>
+		<ul class="govuk-list">
+			#if(($code == "401" || $code == "403") && !$authenticated)
+			<li><a class="govuk-link" href="$signinlink">$!lang.get("signin.title")</a></li>
+			#end
+			<li><a class="govuk-link" href="$!{CONTEXT_PATH}/">$!lang.get("idsk.home")</a></li>
+			<li><a class="govuk-link" href="$questionslink">$!lang.get("questions.title")</a></li>
+		</ul>
+		#if($status || $reason)
+		<details class="govuk-details" data-module="govuk-details">
+			<summary class="govuk-details__summary">
+				<span class="govuk-details__summary-text">$!lang.get("idsk.details")</span>
+			</summary>
+			<div class="govuk-details__text">
+				#if($status)<p class="govuk-body-s sos-mb-0">$!lang.get("idsk.error.code"): $!status</p>#end
+				#if($reason && !$scooldUtils.looksLikeNotConnectedToPara($reason))<p class="govuk-body-s sos-mb-0 sos-error-reason">$!reason</p>#end
+			</div>
+		</details>
+		#end
+	</div>
+</div>

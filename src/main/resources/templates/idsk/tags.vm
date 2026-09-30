@@ -1,0 +1,92 @@
+## Platforma SOS – zoznam štítkov (ID-SK)
+## Moderátori: pridanie štítkov (POST /tags/create), premenovanie/popis (form.tag-rename-form, AJAX v scoold.js)
+## a vymazanie (a.delete-tag, AJAX). Stránkovanie odkazmi namiesto AJAX "Viac" (#paginate("tags")).
+## Štruktúra DOM pre scoold.js: div.tagbox.card-panel.col > .viewbox (.editlink, .tag-count, .tag-description-box)
+## + súrodenec .editbox (form.tag-rename-form, .canceledit).
+
+#set($_sortby = "")#if($request.getParameter('sortby'))#set($_sortby = $request.getParameter('sortby'))#end
+#set($_desc = $request.getParameter('desc'))
+
+<div class="sos-page-head">
+	<div>
+		<h1 class="govuk-heading-xl sos-mb-0">$!lang.get("tags.title")</h1>
+		#if($itemcount.count > 0)<p class="govuk-body sos-muted">$!lang.get('results'): $!itemcount.count</p>#end
+	</div>
+</div>
+<p class="govuk-body-l">$!lang.get('tags.info')</p>
+
+<nav aria-label="$!lang.get('idsk.sort')">
+	<ul class="sos-tabs">
+		<li><a href="$tagslink?desc=#if(($_sortby.isEmpty() || $_sortby == 'count') && $_desc != 'false')false#{else}true#end"
+					 #if($_sortby.isEmpty() || $_sortby == "count")aria-current="page"#end>$!lang.get("posts.mostpopular")#if(($_sortby.isEmpty() || $_sortby == 'count') && $_desc == 'false') &uarr;<span class="govuk-visually-hidden">($!lang.get('ascending'))</span>#end</a></li>
+		<li><a href="$tagslink?sortby=tag&desc=#if($_sortby == 'tag' && $_desc == 'false')true#{else}false#end"
+					 #if($_sortby == "tag")aria-current="page"#end>$!lang.get("name")#if($_sortby == 'tag' && $_desc != 'false') &darr;<span class="govuk-visually-hidden">($!lang.get('descending'))</span>#end</a></li>
+	</ul>
+</nav>
+
+#if($isMod)
+<details class="govuk-details sos-tags-add">
+	<summary class="govuk-details__summary">
+		<span class="govuk-details__summary-text">$!lang.get('idsk.tags.add')</span>
+	</summary>
+	<div class="govuk-details__text">
+		<form method="post" id="create-tags-form" action="$tagslink/create">
+			<div class="govuk-form-group sos-mb-0">
+				<label class="govuk-label govuk-label--s" for="new_tags_text">$!lang.get('tags.title')</label>
+				<div id="new_tags_text-hint" class="govuk-hint">$!lang.get('idsk.tags.add.hint')</div>
+				<div class="sos-inline-form">
+					<input class="govuk-input" type="text" id="new_tags_text" name="tags" maxlength="400" minlength="2" required aria-describedby="new_tags_text-hint">
+					<button class="govuk-button govuk-button__basic" type="submit">$!lang.get('add')</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</details>
+#end
+
+#if(!$tagslist || $tagslist.isEmpty())
+	<div class="sos-empty"><p class="govuk-body-l sos-mb-0">$!{lang.get("search.notfound")}</p></div>
+#else
+	<ul class="sos-tag-grid">
+	#foreach($showtag in $tagslist)
+		<li>
+			<div class="tagbox card-panel col sos-tagbox">
+				<div class="viewbox">
+					<h2 class="govuk-heading-s sos-mb-0">
+						<a href="$questionslink/tag/$!utils.urlEncode($showtag.tag)" class="govuk-link">$!showtag.tag</a>
+					</h2>
+					<p class="govuk-body-s sos-muted sos-tagbox__count">$!lang.get('idsk.tags.count'): <strong>$!showtag.count</strong></p>
+					<p class="govuk-body-s tag-description-box sos-mb-0">$!showtag.description</p>
+					#if($isMod)
+						<a href="#" class="govuk-link govuk-body-s editlink sos-tagbox__edit">$!lang.get('edit')<span class="govuk-visually-hidden">: $!showtag.tag</span></a>
+					#end
+				</div>
+
+				#if($isMod)
+				<div class="editbox hide">
+					<form method="post" class="tag-rename-form">
+						<input type="hidden" name="tag" value="$!showtag.tag">
+						<div class="govuk-form-group">
+							<label class="govuk-label govuk-body-s" for="new-tag-$foreach.count">$!lang.get('tags.tag')</label>
+							<input class="govuk-input" type="text" id="new-tag-$foreach.count" name="newtag" value="$!showtag.tag" required>
+						</div>
+						<div class="govuk-form-group">
+							<label class="govuk-label govuk-body-s" for="new-tag-info-$foreach.count">$!lang.get('description')</label>
+							<input class="govuk-input" type="text" id="new-tag-info-$foreach.count" name="description" value="$!showtag.description">
+						</div>
+						<div class="sos-form-actions sos-mb-0">
+							<button class="govuk-button govuk-button__basic" type="submit">$!lang.get('save')</button>
+							<button type="button" class="govuk-button govuk-button--texted canceledit">$!lang.get('cancel')</button>
+						</div>
+						<p class="govuk-body-s sos-mb-0">
+							<a href="$tagslink/delete?tag=$!utils.urlEncode($showtag.tag)" class="govuk-link delete-tag sos-link-danger">$!lang.get('delete')<span class="govuk-visually-hidden">: $!showtag.tag</span></a>
+						</p>
+					</form>
+				</div>
+				#end
+			</div>
+		</li>
+	#end
+	</ul>
+	#idskpagination($itemcount "page")
+#end

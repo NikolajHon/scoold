@@ -1,0 +1,117 @@
+## Platforma SOS – vyhľadávanie (ID-SK)
+<h1 class="govuk-heading-xl">$!lang.get('idsk.search.placeholder')</h1>
+<p class="govuk-body-l">$!lang.get('idsk.search.lead')</p>
+
+<form class="sos-search-big" role="search" action="$searchlink" method="get">
+	<label for="sos-search-page" class="govuk-visually-hidden">$!lang.get('idsk.search.placeholder')</label>
+	<input id="sos-search-page" class="govuk-input" type="search" name="q" value="$!searchQuery" placeholder="$!lang.get('idsk.search.placeholder')" required>
+	<button type="submit" class="govuk-button govuk-button__basic">$!lang.get('search.search')</button>
+</form>
+
+#if($searchQuery && !$searchQuery.isEmpty())
+	#set($_encQ = $utils.urlEncode($searchQuery))
+	<nav aria-label="$!lang.get('idsk.sort')">
+		<ul class="sos-tabs">
+			<li><a href="$searchlink?q=$!_encQ" #if(!$showParam)aria-current="page"#end>$!lang.get('showall')</a></li>
+			<li><a href="$searchlink/questions/$!searchQuery" #if($showParam == "questions")aria-current="page"#end>$!lang.get('questions.title')</a></li>
+			<li><a href="$searchlink/answers/$!searchQuery" #if($showParam == "answers")aria-current="page"#end>$!lang.get('answers.title')</a></li>
+			<li><a href="$searchlink/comments/$!searchQuery" #if($showParam == "comments")aria-current="page"#end>$!lang.get('comments.title')</a></li>
+		</ul>
+	</nav>
+#end
+
+#macro(idsksearchanswers $answers)
+	<ul class="sos-list">
+	#foreach($answer in $answers)
+		<li>
+			<article class="idsk-card">
+				<div class="idsk-card__content">
+					<div class="idsk-card__heading">
+						<h3 class="govuk-heading-s sos-mb-0"><a class="govuk-link" href="$questionlink/$answer.parentid#post-$!answer.id">$!answer.title</a></h3>
+					</div>
+					#set($plainTxt = $utils.stripHtml($utils.markdownToHtml($utils.stripHtml($!answer.body))))
+					<div class="idsk-card__description">$!utils.abbreviate($plainTxt, 220)</div>
+					<div class="sos-card-meta">
+						#if($answer.type == "unapprovedreply")<span class="sos-status sos-status--warning">$!lang.get('posts.unapproved')</span>#end
+						<span>#formatdate($answer.timestamp "")</span>
+						<span>#idskperson($answer.author)</span>
+					</div>
+				</div>
+			</article>
+		</li>
+	#end
+	</ul>
+#end
+
+#macro(idsksearchcomments $comments)
+	<ul class="sos-list">
+	#foreach($c in $comments)
+		<li class="commentbox">
+			#set($_commentHtml = $utils.markdownToHtml($!c.comment))
+			<a class="govuk-link" href="$questionlink/$c.parentid?commentid=$!c.id">$!{_commentHtml}</a>
+			<span class="comment-meta">#formatdate($c.timestamp '')</span>
+		</li>
+	#end
+	</ul>
+#end
+
+#if ($showParam)
+	<h2 class="govuk-heading-l">
+		#if ($showParam == "questions")$!lang.get("questions.title")
+		#elseif ($showParam == "answers")$!lang.get("answers.title")
+		#elseif ($showParam == "feedback")$!lang.get("feedback.title")
+		#elseif ($showParam == "people")$!lang.get("people.title")
+		#elseif ($showParam == "comments")$!lang.get("comments.title")
+		#end
+		($!itemcount.count)
+	</h2>
+	#if ($itemcount.count == 0)
+		<div class="sos-empty"><p class="govuk-body-l sos-mb-0">$!lang.get("search.notfound")</p></div>
+	#elseif ($showParam == "questions")
+		#idskquestionslist($questionslist)
+	#elseif ($showParam == "answers")
+		#idsksearchanswers($answerslist)
+	#elseif ($showParam == "feedback")
+		#idskquestionslist($feedbacklist)
+	#elseif ($showParam == "comments")
+		#idsksearchcomments($commentslist)
+	#elseif ($showParam == "people")
+		<ul class="govuk-list govuk-list--spaced">
+		#foreach($u in $userlist)
+			<li>#idskperson($u)</li>
+		#end
+		</ul>
+	#end
+	#idskpagination($itemcount "page")
+#elseif($searchQuery && !$searchQuery.isEmpty())
+	#if ($questionslist.isEmpty() && $answerslist.isEmpty() && $feedbacklist.isEmpty() && $userlist.isEmpty() && $commentslist.isEmpty())
+		<div class="sos-empty"><p class="govuk-body-l sos-mb-0">$!lang.get("search.notfound")</p></div>
+	#end
+
+	#if (!$questionslist.isEmpty())
+		<h2 class="govuk-heading-l">$!lang.get("questions.title")</h2>
+		#idskquestionslist($questionslist)
+		<p class="govuk-body"><a href="$searchlink/questions/$!searchQuery" class="govuk-link">$!lang.get("more")</a></p>
+	#end
+
+	#if (!$answerslist.isEmpty())
+		<h2 class="govuk-heading-l">$!lang.get("answers.title")</h2>
+		#idsksearchanswers($answerslist)
+		<p class="govuk-body"><a href="$searchlink/answers/$!searchQuery" class="govuk-link">$!lang.get("more")</a></p>
+	#end
+
+	#if (!$commentslist.isEmpty())
+		<h2 class="govuk-heading-l">$!lang.get("comments.title")</h2>
+		#idsksearchcomments($commentslist)
+		<p class="govuk-body"><a href="$searchlink/comments/$!searchQuery" class="govuk-link">$!lang.get("more")</a></p>
+	#end
+
+	#if (!$userlist.isEmpty())
+		<h2 class="govuk-heading-l">$!lang.get("people.title")</h2>
+		<ul class="govuk-list govuk-list--spaced">
+		#foreach($u in $userlist)
+			<li>#idskperson($u)</li>
+		#end
+		</ul>
+	#end
+#end

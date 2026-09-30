@@ -1,0 +1,341 @@
+## Platforma SOS – nastavenia používateľa (ID-SK)
+## Zachované pre scoold.js / SettingsController: #twofaSwitch, #twofaSetup, #newpostEmailsSwitch,
+## #newpostEmailsFilterToggle, #newpostEmailsFilter (select), .chips-autocomplete + hidden input[name=tags],
+## input.locationbox + input.latlngbox (cities.js), #api-key-form (makro idskapikeyspage z idsk/macros-admin.vm), MAX_FAVORITE_TAGS.
+#macro(idsksettingscheck $id $name $checked $label $hint)
+	<div class="govuk-checkboxes__item">
+		<input class="govuk-checkboxes__input" id="$id" name="$name" type="checkbox" value="true" #if($checked)checked="checked"#end #if($hint && !$hint.isEmpty())aria-describedby="${id}-hint"#end>
+		<label class="govuk-label govuk-checkboxes__label" for="$id">$label</label>
+		#if($hint && !$hint.isEmpty())
+		<div id="${id}-hint" class="govuk-hint govuk-checkboxes__hint">$hint</div>
+		#end
+	</div>
+#end
+
+#if ($request.getParameter("delete"))
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-two-thirds-from-desktop">
+			<h1 class="govuk-heading-xl">$!lang.get('idsk.settings.delete.title')</h1>
+			<div class="govuk-notification-banner govuk-notification-banner--warning" role="region" aria-labelledby="sos-delete-warning-title">
+				<div class="govuk-notification-banner__header">
+					<h2 class="govuk-notification-banner__title" id="sos-delete-warning-title">$!lang.get('idsk.settings.warning')</h2>
+				</div>
+				<div class="govuk-notification-banner__content">
+					<p class="govuk-notification-banner__heading">$!lang.get("settings.delete.confirm")</p>
+					<p class="govuk-body">$!lang.get('idsk.settings.delete.text')</p>
+				</div>
+			</div>
+			<form method="post" action="$settingslink/goodbye">
+				#sectoken(false)
+				<div class="sos-form-actions">
+					<button type="submit" class="govuk-button govuk-button__warning" data-module="govuk-button">$!lang.get('delete')</button>
+					<a href="$settingslink" class="govuk-button govuk-button--sec" role="button">$!lang.get("cancel")</a>
+				</div>
+			</form>
+		</div>
+	</div>
+#else
+	#set($userSpaces = $authUser.allSpaces)
+	#set($setShowPassword = $authUser.user.identityProvider == "generic")
+	#set($setShowTokens = $scooldUtils.isApiUserAccessEnabled())
+
+	<h1 class="govuk-heading-xl">$!lang.get("settings.title")</h1>
+
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-one-third-from-desktop sos-settings-nav-col">
+			<nav class="sos-aside sos-settings-nav" aria-labelledby="sos-settings-nav-title">
+				<h2 class="govuk-heading-s" id="sos-settings-nav-title">$!lang.get('idsk.settings.onthispage')</h2>
+				<ul class="govuk-list">
+					<li><a class="govuk-link" href="#sos-set-general">$!lang.get('idsk.settings.general')</a></li>
+					<li><a class="govuk-link" href="#sos-set-filters">$!lang.get('settings.filters')</a></li>
+					#if($emailsAllowed)
+					<li><a class="govuk-link" href="#sos-set-notifications">$!lang.get('settings.notifications')</a></li>
+					#end
+					<li><a class="govuk-link" href="#sos-set-security">$!lang.get('idsk.settings.security')</a></li>
+					#if($setShowTokens)
+					<li><a class="govuk-link" href="#sos-set-tokens">$!lang.get('admin.mytokens')</a></li>
+					#end
+					<li><a class="govuk-link" href="#sos-set-delete">$!lang.get('idsk.settings.delete.title')</a></li>
+				</ul>
+			</nav>
+		</div>
+
+		<div class="govuk-grid-column-two-thirds-from-desktop sos-settings">
+
+			#if($request.getParameter("passChanged"))
+			<div class="govuk-notification-banner govuk-notification-banner--success" role="alert" aria-labelledby="sos-pass-changed-title" data-module="govuk-notification-banner">
+				<div class="govuk-notification-banner__header">
+					<h2 class="govuk-notification-banner__title" id="sos-pass-changed-title">$!lang.get('idsk.success')</h2>
+				</div>
+				<div class="govuk-notification-banner__content">
+					<p class="govuk-notification-banner__heading">$!lang.get('idsk.settings.passchanged')</p>
+				</div>
+			</div>
+			#end
+
+			## ================= hlavný formulár (POST /settings) =================
+			<form method="post" id="sos-settings-form">
+				#sectoken(false)
+
+				<section class="sos-settings-section" id="sos-set-general" aria-labelledby="sos-set-general-h">
+					<h2 class="govuk-heading-l" id="sos-set-general-h">$!lang.get('idsk.settings.general')</h2>
+
+					<div class="govuk-form-group">
+						<label class="govuk-label govuk-body-m" for="sos-preferred-space">$!lang.get('settings.preferredspace')</label>
+						<select class="govuk-select" id="sos-preferred-space" name="preferredSpace">
+							<option value="scooldspace:*" #if($authUser.preferredSpace.isBlank())selected="selected"#end>$!lang.get('allspaces')</option>
+							<option value="scooldspace:default" #if($authUser.preferredSpace == "scooldspace:default")selected="selected"#end>$!lang.get('defaultspace')</option>
+							#foreach($space in $userSpaces)
+							#if(!$scooldUtils.isDefaultSpace($space))
+							<option value="$space" #if($authUser.preferredSpace == $space)selected="selected"#end>$!scooldUtils.getSpaceName($space)</option>
+							#end
+							#end
+						</select>
+					</div>
+
+					#if($scooldUtils.isAnonymityEnabled() || $scooldUtils.isDarkModeEnabled())
+					<div class="govuk-form-group">
+						<fieldset class="govuk-fieldset">
+							<legend class="govuk-fieldset__legend govuk-fieldset__legend--s">$!lang.get('idsk.settings.display')</legend>
+							<div class="govuk-checkboxes govuk-checkboxes--small" data-module="govuk-checkboxes">
+								#if($scooldUtils.isAnonymityEnabled())
+									#idsksettingscheck("sos-anon" "anon" $authUser.anonymityEnabled $lang.get('settings.anonymity.text') $lang.get('idsk.settings.anonymity.hint'))
+								#end
+								#if($scooldUtils.isDarkModeEnabled())
+									#idsksettingscheck("sos-dark" "dark" $darkModeEnabled $lang.get('settings.darkmode.text') "")
+								#end
+							</div>
+						</fieldset>
+					</div>
+					#end
+				</section>
+
+				<section class="sos-settings-section" id="sos-set-filters" aria-labelledby="sos-set-filters-h">
+					<h2 class="govuk-heading-l" id="sos-set-filters-h">$!lang.get('settings.filters')</h2>
+
+					<div class="govuk-form-group">
+						<div class="govuk-label govuk-body-m" id="sos-favtags-label">$!lang.get('posts.tagfilter')</div>
+						<div class="govuk-hint" id="sos-favtags-hint">$!lang.get("settings.tagfilter.text")</div>
+						## skrytý input MUSÍ nasledovať hneď za .chips (scoold.js: autocomplete.next('input[type=hidden]'))
+						<div class="chips chips-autocomplete" title="$!lang.get('tags.title')"></div><input type="hidden" name="tags" value="$!authUser.favtagsString">
+					</div>
+
+					#if($scooldUtils.isNearMeFeatureEnabled())
+					<div class="govuk-form-group govuk-input-component">
+						<label class="govuk-label govuk-body-m" for="sos-location">
+							$!lang.get('posts.locationfilter')
+							<p class="govuk-body-s sos-muted sos-mb-0">$!lang.get('settings.location')</p>
+						</label>
+						## Materialize Autocomplete (cities.js) vyžaduje obal .input-field
+						<div class="govuk-input-container input-field sos-location-wrap">
+							<input class="govuk-input locationbox autocomplete" id="sos-location" name="location" type="text" value="$!authUser.latlngLabel" autocomplete="off">
+						</div>
+						<input type="hidden" name="latlng" class="latlngbox" value="$!{authUser.latlng}">
+					</div>
+					#end
+				</section>
+
+				#if($emailsAllowed)
+				<section class="sos-settings-section" id="sos-set-notifications" aria-labelledby="sos-set-notifications-h">
+					<h2 class="govuk-heading-l" id="sos-set-notifications-h">$!lang.get('settings.notifications')</h2>
+					<div class="govuk-form-group">
+						<fieldset class="govuk-fieldset" aria-describedby="sos-notif-hint">
+							<legend class="govuk-fieldset__legend govuk-visually-hidden">$!lang.get('settings.notifications')</legend>
+							<div class="govuk-hint" id="sos-notif-hint">$!lang.get('idsk.settings.notifications.hint')</div>
+							<div class="govuk-checkboxes govuk-checkboxes--small" data-module="govuk-checkboxes">
+								#if($newpostEmailsAllowed)
+								<div class="govuk-checkboxes__item">
+									<input class="govuk-checkboxes__input" id="newpostEmailsSwitch" name="newpostEmailsOn" type="checkbox" value="true" #if($newpostEmailsEnabled)checked="checked"#end>
+									<label class="govuk-label govuk-checkboxes__label" for="newpostEmailsSwitch">$!lang.get('settings.newpostemails')</label>
+								</div>
+								#if(($authUser.favspaces && !$authUser.favspaces.isEmpty()) || $newpostEmailsEnabled)
+									#set($hideFilterToggleClass = "")
+								#else
+									#set($hideFilterToggleClass = "hide")
+								#end
+								#if($authUser.favspaces && !$authUser.favspaces.isEmpty())
+									#set($hideFavspacesClass = "")
+								#else
+									#set($hideFavspacesClass = "hide")
+								#end
+								<p class="govuk-body-s sos-settings-filter-toggle">
+									<a href="#newpostEmailsFilter" id="newpostEmailsFilterToggle" class="govuk-link ${hideFilterToggleClass}" aria-controls="newpostEmailsFilter">$!lang.get('idsk.settings.filterspaces')</a>
+								</p>
+								<div id="newpostEmailsFilter" class="govuk-checkboxes__conditional sos-settings-conditional ${hideFavspacesClass}">
+									<div class="govuk-form-group">
+										<label class="govuk-label govuk-body-m" for="sos-favspaces">$!lang.get('settings.filterbyspace')</label>
+										<div class="govuk-hint" id="sos-favspaces-hint">$!lang.get('idsk.settings.multiselect.hint')</div>
+										<select class="govuk-select sos-select-multiple" id="sos-favspaces" name="favspaces" multiple aria-describedby="sos-favspaces-hint">
+											<option value="" disabled #if($authUser.favspaces.isEmpty())selected#end>$!lang.get('allspaces')</option>
+											<option value="$scooldUtils.getDefaultSpace()">$!lang.get('defaultspace')</option>
+											#foreach($space in $userSpaces)
+												#if(!$scooldUtils.isDefaultSpace($space))
+												#set($spaceId = $!scooldUtils.getSpaceId($!space))
+												#if($newpostEmailsEnabled && $authUser.favspaces.contains($spaceId))
+													<option value="$spaceId" selected="selected">$!scooldUtils.getSpaceName($space)</option>
+												#else
+													<option value="$spaceId">$!scooldUtils.getSpaceName($space)</option>
+												#end
+												#end
+											#end
+										</select>
+									</div>
+									#if($isMod)
+									<div class="govuk-checkboxes govuk-checkboxes--small">
+										#idsksettingscheck("sos-newreply" "newreplyEmailsOn" $newreplyEmailsEnabled $lang.get('settings.newreplymails') "")
+									</div>
+									#end
+								</div>
+								#end
+								#if($favtagsEmailsAllowed)
+									#idsksettingscheck("sos-favtags-emails" "favtagsEmailsOn" $authUser.favtagsEmailsEnabled $lang.get('settings.favtagsemails') "")
+								#end
+								#if($replyEmailsAllowed)
+									#idsksettingscheck("sos-reply-emails" "replyEmailsOn" $authUser.replyEmailsEnabled $lang.get('settings.replyemails') "")
+								#end
+								#if($commentEmailsAllowed)
+									#idsksettingscheck("sos-comment-emails" "commentEmailsOn" $authUser.commentEmailsEnabled $lang.get('settings.commentemails') "")
+								#end
+							</div>
+						</fieldset>
+					</div>
+				</section>
+				#end
+
+				#if($setShowPassword)
+				<section class="sos-settings-section" aria-labelledby="sos-set-password-h">
+					<h2 class="govuk-heading-l" id="sos-set-password-h">$!lang.get('password')</h2>
+					<details class="govuk-details">
+						<summary class="govuk-details__summary">
+							<span class="govuk-details__summary-text">$!lang.get('idsk.settings.changepassword')</span>
+						</summary>
+						<div class="govuk-details__text">
+							<div class="govuk-form-group govuk-input-component">
+								<label class="govuk-label govuk-body-m" for="sos-oldpassword">$!lang.get('idsk.settings.oldpassword')</label>
+								<div class="govuk-input-container">
+									<input class="govuk-input" id="sos-oldpassword" name="oldpassword" type="password" value="" minlength="6" autocomplete="current-password">
+								</div>
+							</div>
+							<div class="govuk-form-group govuk-input-component">
+								<label class="govuk-label govuk-body-m" for="sos-newpassword">$!lang.get('newpassword')</label>
+								<div class="govuk-input-container">
+									<input class="govuk-input" id="sos-newpassword" name="newpassword" type="password" value="" minlength="6" autocomplete="new-password">
+								</div>
+							</div>
+						</div>
+					</details>
+				</section>
+				#end
+
+				<div class="sos-form-actions sos-settings-save">
+					<button type="submit" class="govuk-button govuk-button__basic" data-module="govuk-button">$!lang.get('save')</button>
+				</div>
+			</form>
+
+			## ================= bezpečnosť – dvojfaktorové overenie (vlastný formulár) =================
+			<section class="sos-settings-section" id="sos-set-security" aria-labelledby="sos-set-security-h">
+				<h2 class="govuk-heading-l" id="sos-set-security-h">$!lang.get('idsk.settings.security')</h2>
+				<h3 class="govuk-heading-m">$!lang.get('signin.twofactor')
+					#if($authUser.user.twoFA || $backupCode)
+						<span class="sos-status sos-status--success">$!lang.get('idsk.settings.on')</span>
+					#else
+						<span class="sos-status sos-status--neutral">$!lang.get('idsk.settings.off')</span>
+					#end
+				</h3>
+				<div class="govuk-form-group">
+					<div class="govuk-checkboxes govuk-checkboxes--small">
+						<div class="govuk-checkboxes__item">
+							<input class="govuk-checkboxes__input" id="twofaSwitch" name="twofa" type="checkbox" value="true" #if($authUser.user.twoFA || $backupCode)checked="checked"#end aria-controls="twofaSetup" aria-describedby="twofaSwitch-hint">
+							<label class="govuk-label govuk-checkboxes__label" for="twofaSwitch">$!lang.get('signin.twofactor.text')</label>
+							<div id="twofaSwitch-hint" class="govuk-hint govuk-checkboxes__hint">$!lang.get('idsk.settings.twofa.hint')</div>
+						</div>
+					</div>
+				</div>
+
+				<div id="twofaSetup" class="sos-twofa-setup #if($backupCode)sos-twofa-setup--done#else hide#end">
+					#if($backupCode)
+						<div class="govuk-notification-banner govuk-notification-banner--success" role="alert" aria-labelledby="sos-twofa-on-title" data-module="govuk-notification-banner">
+							<div class="govuk-notification-banner__header">
+								<h4 class="govuk-notification-banner__title" id="sos-twofa-on-title">$!lang.get('idsk.success')</h4>
+							</div>
+							<div class="govuk-notification-banner__content">
+								<p class="govuk-notification-banner__heading">$!lang.get('settings.twofaon')</p>
+								<p class="govuk-body"><strong>$!lang.get('settings.savecode')</strong></p>
+								<p class="govuk-body"><span class="govuk-visually-hidden">$!lang.get('signin.backupcode'): </span><code class="sos-backup-code">$backupCode</code></p>
+							</div>
+						</div>
+					#else
+						<div class="sos-twofa-grid">
+							#if(!$authUser.user.twoFA)
+							<div class="sos-twofa-qr">
+								<img src="$settingslink/qr" width="240" height="240" alt="$!lang.get('idsk.settings.qr.alt')">
+							</div>
+							#end
+							<form method="post" action="$settingslink/toggle-twofa" class="sos-twofa-form">
+								#sectoken(false "TWO_FACTOR")
+								<p class="govuk-body">
+									#if($authUser.user.twoFA)$!lang.get('settings.twofaoff')#else$!lang.get('settings.scancode')#end
+								</p>
+								#set($setCodeErr = "")#if($error.get("code"))#set($setCodeErr = $error.get("code"))#end
+								<div class="govuk-form-group govuk-input-component #if(!$setCodeErr.isEmpty())govuk-form-group--error#end">
+									<label class="govuk-label govuk-body-m" for="code">$!lang.get('signin.code')</label>
+									#idskerror($setCodeErr)
+									<div class="govuk-input-container">
+										<input class="govuk-input sos-input-code #if(!$setCodeErr.isEmpty())govuk-input--error#end" id="code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" #if(!$authUser.user.twoFA)required#end>
+									</div>
+								</div>
+								#if($authUser.user.twoFA)
+								<div class="govuk-form-group govuk-input-component">
+									<label class="govuk-label govuk-body-m" for="backupCode">$!lang.get('signin.backupcode')</label>
+									<div class="govuk-input-container">
+										<input class="govuk-input" id="backupCode" name="backupCode" type="text" autocomplete="off">
+									</div>
+								</div>
+								#end
+								<button type="submit" class="govuk-button govuk-button__basic" data-module="govuk-button">$!lang.get('confirm')</button>
+							</form>
+						</div>
+					#end
+				</div>
+			</section>
+
+			## ================= osobné API tokeny =================
+			#if($setShowTokens)
+			<section class="sos-settings-section" id="sos-set-tokens" aria-labelledby="sos-set-tokens-h">
+				<h2 class="govuk-heading-l" id="sos-set-tokens-h">$!lang.get('admin.mytokens')</h2>
+				<details class="govuk-details">
+					<summary class="govuk-details__summary">
+						<span class="govuk-details__summary-text">$!lang.get('idsk.settings.tokens.show')</span>
+					</summary>
+					<div class="govuk-details__text sos-settings-tokens">
+						#idskapikeyspage($settingslink $apiKeys $apiKeysExpirations)
+					</div>
+				</details>
+			</section>
+			#end
+
+			## ================= zrušenie účtu =================
+			<section class="sos-settings-section sos-settings-danger" id="sos-set-delete" aria-labelledby="sos-set-delete-h">
+				<h2 class="govuk-heading-l" id="sos-set-delete-h">$!lang.get('idsk.settings.delete.title')</h2>
+				<p class="govuk-body">$!lang.get('idsk.settings.delete.text')</p>
+				<a href="${settingslink}?delete=true" class="govuk-button govuk-button__warning" role="button">$!lang.get('idsk.settings.delete.button')</a>
+			</section>
+		</div>
+	</div>
+#end
+
+<script nonce="$cspNonce">
+	MAX_FAVORITE_TAGS = $!MAX_FAV_TAGS;
+	## prístupný názov pre textové pole čipov, ktoré vytvára Materialize JS
+	(function () {
+		function labelChips() {
+			var chipsInput = document.querySelector(".sos-settings .chips-autocomplete input");
+			if (chipsInput && !chipsInput.hasAttribute("aria-labelledby")) {
+				chipsInput.setAttribute("aria-labelledby", "sos-favtags-label");
+				chipsInput.setAttribute("aria-describedby", "sos-favtags-hint");
+			}
+		}
+		window.addEventListener("load", function () { setTimeout(labelChips, 0); setTimeout(labelChips, 1000); });
+		document.addEventListener("focusin", labelChips);
+	})();
+</script>

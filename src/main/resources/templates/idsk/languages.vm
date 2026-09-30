@@ -1,0 +1,41 @@
+## Platforma SOS – výber jazyka (ID-SK)
+## Každý jazyk má vlastný POST formulár na $languageslink/{kľúč} (LanguagesController nastaví cookie a presmeruje späť).
+## Percento prekladu ($langProgressMap) pôvodná šablóna nezobrazuje (je zakomentované), preto ho nezobrazujeme ani tu.
+<div class="govuk-grid-row">
+	<div class="govuk-grid-column-two-thirds-from-desktop">
+		<h1 class="govuk-heading-xl">$!lang.get("translate.select")</h1>
+		<p class="govuk-body-l">$!lang.get("idsk.languages.lead")</p>
+
+		<table class="govuk-table sos-lang-table">
+			<caption class="govuk-table__caption govuk-visually-hidden">$!lang.get("translate.select")</caption>
+			<thead class="govuk-table__head">
+				<tr class="govuk-table__row">
+					<th scope="col" class="govuk-table__header">$!lang.get("idsk.language")</th>
+					<th scope="col" class="govuk-table__header sos-lang-table__action"><span class="govuk-visually-hidden">$!lang.get("idsk.actions")</span></th>
+				</tr>
+			</thead>
+			<tbody class="govuk-table__body">
+			#foreach($key in $allLocales.keySet())
+				#set($value = $allLocales.get($key))
+				#set($showLangName = $!value.getDisplayName($value))
+				#set($langTag = $key.replace("_", "-"))
+				#set($isCurrentLang = $key.equals($currentLocale.toString()))
+				<tr class="govuk-table__row #if($isCurrentLang)sos-lang-table__row--current#end">
+					<th scope="row" class="govuk-table__header">
+						<span class="sos-lang-name" lang="$!langTag">$!showLangName</span>
+						#if($isCurrentLang)<strong class="sos-status sos-status--success sos-lang-current">$!lang.get("idsk.languages.current")</strong>#end
+					</th>
+					<td class="govuk-table__cell sos-lang-table__action">
+						#if(!$isCurrentLang)
+						<form action="$languageslink/$!key" method="post">
+							#sectoken(false)
+							<button type="submit" class="govuk-button govuk-button--sec sos-mb-0">$!lang.get("idsk.languages.choose")<span class="govuk-visually-hidden">: <span lang="$!langTag">$!showLangName</span></span></button>
+						</form>
+						#end
+					</td>
+				</tr>
+			#end
+			</tbody>
+		</table>
+	</div>
+</div>

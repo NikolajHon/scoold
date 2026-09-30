@@ -1,0 +1,15 @@
+## Platforma SOS – stránka sa nenašla (404, ID-SK / GOV.UK vzor: h1 + vysvetlenie + odkazy)
+<div class="govuk-grid-row">
+	<div class="govuk-grid-column-two-thirds-from-desktop sos-errorpage">
+		<h1 class="govuk-heading-xl">$!lang.get("idsk.notfound.title")</h1>
+		<p class="govuk-body">$!lang.get("idsk.notfound.body.1")</p>
+		<p class="govuk-body">$!lang.get("idsk.notfound.body.2")</p>
+		<p class="govuk-body">$!lang.get("idsk.notfound.body.3")</p>
+		<ul class="govuk-list">
+			<li><a class="govuk-link" href="$!{CONTEXT_PATH}/">$!lang.get("idsk.home")</a></li>
+			<li><a class="govuk-link" href="$questionslink">$!lang.get("questions.title")</a></li>
+			<li><a class="govuk-link" href="$searchlink">$!lang.get("idsk.search.placeholder")</a></li>
+		</ul>
+		<p class="govuk-body-s sos-muted">$!lang.get("idsk.error.code"): 404</p>
+	</div>
+</div>

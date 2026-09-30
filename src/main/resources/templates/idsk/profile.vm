@@ -1,0 +1,401 @@
+## Platforma SOS – profil používateľa (ID-SK)
+## Bez reputácie a odznakov pre bežných používateľov. Zachované: úprava profilu, zmena obrázka,
+## otázky/odpovede používateľa, správa (moderátor, oblasti, vlastné odznaky, notifikácie, vymazanie).
+## Háčiky pre scoold.js: editlink/viewbox/editbox/canceledit, #picture-url, #avatar-*-url, #use-gravatar-switch,
+## #change-avatar-btn (+ hneď nasledujúci input[type=file]), #clear-avatar-btn, #avatar_loading,
+## img.profile-pic.on-profile-page, a.make-mod-btn, .smallspacebox.orange-border, .moderator-icon,
+## #available-badges/#user-badges/.custom-badge, #badge-* (tvorba odznaku), post-refresh, post-refresh-ask.
+
+## ---------- lokálne makrá ----------
+#macro(idskprofmakemodlink $s)
+	#if ($isAdmin && !$scooldUtils.config.modsAccessAllSpaces() && !$scooldUtils.isAdmin($showUser))
+		<a href="$profilelink/$showUser.creatorid/make-mod?spaces=$!s" class="govuk-link make-mod-btn">
+			<span class="#if(!$showUser.isModInSpace($s))hide#end">$!lang.get('idsk.profile.unmakemod')</span>
+			<span class="#if($showUser.isModInSpace($s))hide#end">$!lang.get('idsk.profile.makemod')</span>
+		</a>
+	#end
+#end
+
+#macro(idskprofspaceitem $spaceId $spaceName)
+	#set($_modHere = !$scooldUtils.config.modsAccessAllSpaces() && $showUser.isModInSpace($spaceId))
+	<li class="smallspacebox sos-space-item #if($_modHere)orange-border#end">
+		<span class="sos-space-item__name">$!spaceName</span>
+		<span class="sos-status sos-status--neutral sos-space-modlabel">$!lang.get('mod')</span>
+		#idskprofmakemodlink($spaceId)
+	</li>
+#end
+
+## Vlastný odznak – len pre moderátorov (správa); JS presúva element medzi #user-badges a #available-badges
+#macro(idskprofbadge $badge $clazz)
+#if($badge)
+	<a href="$peoplelink/tag/$!badge.tag" class="chip custom-badge sos-badge $!{clazz}" title="$!badge.description" style="$!badge.style"
+		 data-url="$profilelink/$!showUser.creatorid/toggle-badge/$!badge.tag">
+		<span class="hide remove-badge" aria-hidden="true">&minus;</span>
+		<span class="hide add-badge" aria-hidden="true">+</span>
+		#if($badge.icon)<span class="badge-icon" aria-hidden="true">$!badge.icon</span>#end
+		<b>$!badge.name</b>
+	</a>
+#end
+#end
+
+#macro(idskprofanswers $answers)
+	<ul class="sos-list">
+	#foreach($answer in $answers)
+		<li>
+			<article class="idsk-card">
+				<div class="idsk-card__content">
+					<div class="idsk-card__heading">
+						<h3 class="govuk-heading-s sos-mb-0"><a class="govuk-link" href="$questionlink/$!answer.parentid#post-$!answer.id">$!answer.title</a></h3>
+					</div>
+					#set($plainTxt = $utils.stripHtml($utils.markdownToHtml($utils.stripHtml($!answer.body))))
+					<div class="idsk-card__description">$!utils.abbreviate($plainTxt, 220)</div>
+					<div class="sos-card-meta">
+						#if($answer.type == "unapprovedreply")<span class="sos-status sos-status--warning">$!lang.get('posts.unapproved')</span>#end
+						<span>#formatdate($answer.timestamp "")</span>
+					</div>
+				</div>
+			</article>
+		</li>
+	#end
+	</ul>
+#end
+
+## ---------- prepínanie zobrazenia / úpravy (URL .../edit otvorí formulár aj bez JS) ----------
+#if ($request.requestURI.endsWith("/edit") && $authenticated)
+	#set($hideedit1 = "")
+	#set($hideview1 = "hide")
+#else
+	#set($hideedit1 = "hide")
+	#set($hideview1 = "")
+#end
+#set($_showPersonal = !$showUser.anonymityEnabled)
+#set($_q1 = 0)#if($itemcount1 && $itemcount1.count)#set($_q1 = $itemcount1.count)#end
+#set($_q2 = 0)#if($itemcount2 && $itemcount2.count)#set($_q2 = $itemcount2.count)#end
+
+#if($scooldUtils.config.usersDiscoverabilityEnabled($isAdmin))
+<nav class="govuk-breadcrumbs" aria-label="Breadcrumb">
+	<ol class="govuk-breadcrumbs__list">
+		<li class="govuk-breadcrumbs__list-item"><a class="govuk-breadcrumbs__link" href="$peoplelink">$!lang.get('people.title')</a></li>
+		<li class="govuk-breadcrumbs__list-item" aria-current="page">$!showUser.name</li>
+	</ol>
+</nav>
+#end
+
+<div class="govuk-grid-row profilepage sos-profile">
+	## ================= ľavý stĺpec: obrázok a rola =================
+	<div class="govuk-grid-column-one-third-from-desktop">
+		<div class="sos-profile-card">
+			<img src="#profilepic($showUser, 'Profile')" id="profile_${showUser.creatorid}"
+					 class="profile-pic on-profile-page sos-profile-pic" alt="$!lang.get('idsk.profile.picture.alt')" width="200" height="200">
+
+			#if ($canEdit && $canEditAvatar)
+			<div class="viewbox">
+				<a href="#" class="govuk-link editlink sos-profile-changepic">$!lang.get('profile.changepic')</a>
+			</div>
+			<div class="editbox hide sos-avatar-edit">
+				<form action="$profilelink/$!showUser.creatorid" method="post">
+					#sectoken(false)
+					<input id="avatar-gravatar-url" type="hidden" value="$!gravatarPicture">
+					<input id="avatar-default-url" type="hidden" value="$!scooldUtils.getDefaultAvatar()">
+					<input id="avatar-custom-url" type="hidden" value="$!showUser.originalPicture">
+					<input id="picture-url" type="hidden" name="picture" value="$!showUser.picture">
+
+					<h2 class="govuk-heading-s">$!lang.get('profile.changepic')</h2>
+					#if($scooldUtils.isGravatarEnabled())
+					<div class="govuk-form-group">
+						<div class="govuk-checkboxes govuk-checkboxes--small" data-module="govuk-checkboxes">
+							<div class="govuk-checkboxes__item">
+								<input class="govuk-checkboxes__input" id="use-gravatar-switch" type="checkbox" name="gravatar" #if($isGravatarPicture)checked="checked"#end>
+								<label class="govuk-label govuk-checkboxes__label" for="use-gravatar-switch">$!lang.get('profile.usegravatar')</label>
+							</div>
+						</div>
+					</div>
+					#end
+
+					<div id="avatar_loading" class="hide">
+						<div class="progress ajaxwait"><div class="indeterminate"></div></div>
+					</div>
+
+					<div class="sos-avatar-actions">
+						#if($scooldUtils.isAvatarUploadsEnabled())
+						<button type="button" id="change-avatar-btn" class="govuk-button govuk-button__basic">$!lang.get('idsk.profile.upload')</button><input type="file" name="file" class="hide" accept="image/*" aria-label="$!lang.get('idsk.profile.upload')"/>
+						#end
+						<button type="button" id="clear-avatar-btn" class="govuk-button govuk-button--sec">$!lang.get('clear')</button>
+						<button type="button" class="govuk-button govuk-button--texted canceledit">$!lang.get('close')</button>
+					</div>
+				</form>
+			</div>
+			#end
+
+			#if($scooldUtils.isModAnywhere($showUser) || $scooldUtils.isAdmin($showUser))
+				#set($hideBadgePanel = "")
+			#else
+				#set($hideBadgePanel = "hide")
+			#end
+			<div class="sos-profile-roles $!{hideBadgePanel}">
+				#if ($showUser.groups == "admins")
+					<span class="sos-status sos-status--neutral admin-badge">$!lang.get('admin')</span>
+				#else
+					#if ($scooldUtils.isModAnywhere($showUser))#set($hideModIcon = "")#else#set($hideModIcon = "hide")#end
+					<span class="sos-status sos-status--neutral moderator-icon mod-badge $!{hideModIcon}">$!lang.get('mod')</span>
+				#end
+			</div>
+		</div>
+	</div>
+
+	## ================= pravý stĺpec: údaje a úprava =================
+	<div class="govuk-grid-column-two-thirds-from-desktop">
+		## .row – editlink ju používa na nájdenie nasledujúceho .viewbox/.editbox (scoold.js)
+		<div class="row sos-page-head">
+			<div>
+				<h1 class="govuk-heading-xl sos-mb-0">$!{showUser.name}</h1>
+				#if ($isAdmin && $showUser.originalName && $showUser.originalName != $showUser.name)
+					<p class="govuk-body sos-muted sos-mb-0">$!lang.get('idsk.profile.originalname'): $!{showUser.originalName}</p>
+				#end
+			</div>
+			#if ($canEdit)
+				<a href="$profilelink/$showUser.creatorid/edit" class="govuk-button govuk-button--sec editlink" role="button">$!lang.get('idsk.profile.edit')</a>
+			#end
+		</div>
+
+		<div class="viewbox $!{hideview1}">
+			#if ($_showPersonal && $showUser.aboutme && !$showUser.aboutme.isEmpty())
+				<p class="govuk-body-l sos-profile-about">$!{showUser.aboutme}</p>
+			#end
+
+			<dl class="govuk-body sos-profile-facts">
+				#if ($_showPersonal && $showUser.location && !$showUser.location.isEmpty())
+				<div><dt>$!lang.get('profile.about.location')</dt><dd>$!{showUser.location}</dd></div>
+				#end
+				#if ($_showPersonal && $showUser.website && !$showUser.website.isEmpty())
+				<div><dt>$!lang.get('website')</dt><dd><a href="$!showUser.website" class="govuk-link" rel="nofollow noopener">$!showUser.website.replaceAll("^https?://", "")</a></dd></div>
+				#end
+				#if ($showUser.timestamp)
+				<div><dt>$!lang.get('profile.about.membersince')</dt><dd>#formatdate($!{showUser.timestamp} "dd. MM. yyyy")</dd></div>
+				#end
+				#if ($showUser.lastseen)
+				<div><dt>$!lang.get('profile.about.lastseen')</dt><dd>#formatdate($!{showUser.lastseen} "")</dd></div>
+				#end
+				<div><dt>$!lang.get('questions.title')</dt><dd>$!_q1</dd></div>
+				<div><dt>$!lang.get('answers.title')</dt><dd>$!_q2</dd></div>
+			</dl>
+
+			#if ($showUser.hasSpaces() && $canEdit)
+				#set($userSpaces = $showUser.allSpaces)
+				<h2 class="govuk-heading-m">$!lang.get('spaces.title') ($!userSpaces.size())</h2>
+				<ul class="govuk-list sos-space-list">
+					#if(!$showUser.hasSpaces() || $showUser.getSpaces().contains($scooldUtils.getDefaultSpace()))
+						#idskprofspaceitem($scooldUtils.getSpaceId('default') $lang.get('defaultspace'))
+					#end
+					#foreach($space in $userSpaces)
+						#if(!$scooldUtils.isDefaultSpace($space))
+							#idskprofspaceitem($scooldUtils.getSpaceId($space) $scooldUtils.getSpaceName($space))
+						#end
+					#end
+				</ul>
+			#end
+
+			#if(!$showUser.user && $isMod)
+				<div class="govuk-notification-banner govuk-notification-banner--warning" role="region" aria-labelledby="sos-profile-deleted">
+					<div class="govuk-notification-banner__header">
+						<h2 class="govuk-notification-banner__title" id="sos-profile-deleted">$!lang.get('idsk.info')</h2>
+					</div>
+					<div class="govuk-notification-banner__content"><p class="govuk-notification-banner__heading">$!lang.get("profile.deleted")</p></div>
+				</div>
+			#end
+		</div>
+
+		#if ($canEdit)
+		<div id="about-edit" class="editbox sos-profile-edit $!{hideedit1}">
+			<h2 class="govuk-heading-m">$!lang.get('idsk.profile.edit')</h2>
+			<form method="post" id="about-edit-form" action="$profilelink/$!showUser.creatorid">
+				#sectoken(false)
+
+				<div class="govuk-form-group">
+					<label class="govuk-label govuk-body-m" for="name_text">$!lang.get("name")</label>
+					<input class="govuk-input" id="name_text" name="name" type="text" value="$!{showUser.name}" autocomplete="name"
+								 #if(!$nameEditsAllowed)disabled="disabled"#end>
+				</div>
+
+				<div class="govuk-form-group">
+					<label class="govuk-label govuk-body-m" for="email_text">$!{lang.get("signup.form.email")}</label>
+					#if($showUser.pendingEmail)
+						<p class="govuk-body-s sos-mb-0"><span class="sos-status sos-status--warning">$!lang.get('idsk.profile.email.unverified')</span></p>
+					#else
+						<p class="govuk-body-s sos-mb-0"><span class="sos-status sos-status--success">$!lang.get('idsk.profile.email.verified')</span></p>
+					#end
+					<input class="govuk-input" type="email" id="email_text" autocomplete="email"
+								 value="#if($showUser.pendingEmail)$!{showUser.pendingEmail}#else$!{showUser.user.email}#end"
+								 #if($showUser.user.identityProvider == "generic") name="email"#else name="na" disabled#end>
+					#if($showUser.pendingEmail)
+					<p class="govuk-body-s sos-profile-email-actions">
+						<a href="$profilelink/retry-change-email" class="govuk-link post-refresh">$!lang.get('signup.resend')</a>
+						<a href="$profilelink/cancel-change-email" class="govuk-link post-refresh sos-link-danger">$!lang.get('cancel')</a>
+					</p>
+					#end
+				</div>
+
+				<div class="govuk-form-group">
+					<label class="govuk-label govuk-body-m" for="location_text">$!{lang.get('profile.about.location')}</label>
+					<input type="hidden" name="latlng" value="$!{showUser.latlng}">
+					<div class="sos-autocomplete-wrap">
+						<input class="govuk-input locationbox" id="location_text" name="location" type="text" value="$!{showUser.location}" autocomplete="off">
+					</div>
+				</div>
+
+				<div class="govuk-form-group">
+					<label class="govuk-label govuk-body-m" for="about_text">$!{lang.get("profile.about.aboutme")}</label>
+					<div id="about_text-hint" class="govuk-hint">$!lang.get('idsk.profile.about.hint')</div>
+					<textarea class="govuk-textarea" id="about_text" name="aboutme" rows="4" maxlength="255" aria-describedby="about_text-hint">$!{showUser.aboutme}</textarea>
+				</div>
+
+				<div class="govuk-form-group">
+					<label class="govuk-label govuk-body-m" for="website_text">$!lang.get("website")</label>
+					<div id="website_text-hint" class="govuk-hint">$!lang.get('idsk.profile.website.hint')</div>
+					<input class="govuk-input" id="website_text" name="website" type="url" value="$!{showUser.website}" autocomplete="url" aria-describedby="website_text-hint">
+				</div>
+
+				<div class="sos-form-actions">
+					<button type="submit" class="govuk-button govuk-button__basic" data-module="govuk-button">$!lang.get('save')</button>
+					#if($hideview1 == "")
+						<button type="button" class="govuk-button govuk-button--sec canceledit">$!{lang.get('close')}</button>
+					#else
+						<a href="$profilelink/$showUser.creatorid" class="govuk-button govuk-button--sec" role="button">$!{lang.get('close')}</a>
+					#end
+				</div>
+			</form>
+		</div>
+		#end
+
+		## ================= správa používateľa (moderátor / správca) =================
+		#if (!$isMyProfile && $authenticated)
+		<div class="sos-aside sos-profile-admin">
+			<h2 class="govuk-heading-s">$!lang.get('idsk.actions')</h2>
+			<ul class="govuk-list sos-profile-actions">
+				#set($_rlink = "$profilelink/$!showUser.creatorid")
+				<li><a href="#main-modal" data-fetch="$reportslink/form?parentid=$!showUser.id&type=$!showUser.type&link=$!utils.urlEncode($_rlink)" class="govuk-link modal-trigger">$!lang.get('report')</a></li>
+				#if ($isAdmin && $scooldUtils.config.modsAccessAllSpaces() && !$scooldUtils.isAdmin($showUser))
+					<li>
+						<a href="$profilelink/$showUser.creatorid/make-mod" class="govuk-link make-mod-btn">
+							<span class="#if($showUser.groups != 'mods')hide#end">$!lang.get('idsk.profile.unmakemod')</span>
+							<span class="#if($showUser.groups == 'mods')hide#end">$!lang.get('idsk.profile.makemod')</span>
+						</a>
+					</li>
+				#end
+				#if ($isAdmin)
+					#if(!$scooldUtils.isAdmin($showUser))
+					<li><a href="$profilelink/$showUser.creatorid/unsubscribe" class="govuk-link post-refresh">$!lang.get('idsk.profile.unsubscribe')</a></li>
+					#end
+					<li><a href="${adminlink}?delete=profile&id=$!showUser.id&returnto=$peoplelink" class="govuk-link sos-link-danger">$!lang.get('idsk.profile.deleteaccount')</a></li>
+				#end
+			</ul>
+		</div>
+		#end
+
+		## Vlastné odznaky – iba správa pre moderátorov (bežným používateľom sa nezobrazujú)
+		#if($isMod)
+		<details class="govuk-details sos-profile-badges">
+			<summary class="govuk-details__summary">
+				<span class="govuk-details__summary-text">$!lang.get('idsk.profile.badges.manage')</span>
+			</summary>
+			<div class="govuk-details__text">
+				<p class="govuk-body-s">$!lang.get('idsk.profile.badges.hint')</p>
+				<h3 class="govuk-heading-s">$!lang.get('idsk.profile.badges.assigned')</h3>
+				<p class="sos-badge-list"><span id="user-badges">
+					#if($tagsSet && !$tagsSet.isEmpty())
+						#foreach($tag in $tagsSet)
+							#idskprofbadge($customBadgesMap.get($tag) "remove")
+						#end
+					#end
+				</span></p>
+				<h3 class="govuk-heading-s">$!lang.get('idsk.profile.badges.available')</h3>
+				<p class="sos-badge-list"><span id="available-badges">
+					#foreach($badge in $customBadgesMap.values())
+						#if(!$tagsSet.contains($badge.tag))
+							#idskprofbadge($badge "add")
+						#end
+					#end
+				</span></p>
+
+				<details class="govuk-details sos-mb-0">
+					<summary class="govuk-details__summary">
+						<span class="govuk-details__summary-text">$!lang.get('createbadge')</span>
+					</summary>
+					<div class="govuk-details__text">
+						<form action="$profilelink/$showUser.creatorid/create-badge" method="post">
+							<div class="govuk-form-group #if($error.get('tag'))govuk-form-group--error#end">
+								<label class="govuk-label" for="badge-tag">$!lang.get('badgename')</label>
+								#idskerror($error.get("tag"))
+								<input class="govuk-input govuk-input--width-20" id="badge-tag" type="text" name="tag" value="" required>
+							</div>
+							<div class="govuk-form-group">
+								<label class="govuk-label" for="badge-description">$!lang.get('description')</label>
+								<input class="govuk-input" id="badge-description" type="text" name="description" value="">
+							</div>
+							<div class="sos-badge-colors">
+								<div class="govuk-form-group">
+									<label class="govuk-label" for="badge-color">$!lang.get('badgefg')</label>
+									<input id="badge-color" type="color" name="color" value="#000000" required>
+								</div>
+								<div class="govuk-form-group">
+									<label class="govuk-label" for="badge-background">$!lang.get('badgebg')</label>
+									<input id="badge-background" type="color" name="background" value="#AAAAAA" required>
+								</div>
+								<div class="govuk-form-group emoji-picker-container">
+									<button type="button" class="govuk-button govuk-button--sec emoji-button empty">
+										<span class="emoji-picker-target single" aria-hidden="true"></span> $!lang.get('badgeicon')
+									</button>
+									<input type="hidden" id="badge-icon" name="icon" value="" class="emoji-picker-target single">
+								</div>
+							</div>
+							<p class="govuk-body-s">$!lang.get('idsk.profile.badges.preview'):
+								<span class="chip" id="badge-preview"><span id="badge-preview-icon" class="hide"></span> <b><span id="badge-preview-tag">&hellip;</span></b></span>
+							</p>
+							<button type="submit" class="govuk-button govuk-button__basic">$!lang.get('create')</button>
+						</form>
+
+						#if(!$customBadgesMap.isEmpty())
+						<h3 class="govuk-heading-s">$!lang.get('deletebadge')</h3>
+						<ul class="govuk-list sos-badge-delete-list">
+							#foreach($badge in $customBadgesMap.values())
+							<li>$!badge.name &ndash; <a href="$profilelink/delete-badge/$!badge.tag" class="govuk-link post-refresh-ask sos-link-danger">$!lang.get('delete')</a></li>
+							#end
+						</ul>
+						#end
+					</div>
+				</details>
+			</div>
+		</details>
+		#end
+	</div>
+</div>
+
+## ================= otázky a odpovede používateľa =================
+<div class="sos-profile-posts">
+	<nav aria-label="$!lang.get('idsk.sort')">
+		<ul class="sos-tabs">
+			<li><a href="#questions">$!lang.get("questions.title") ($!_q1)</a></li>
+			<li><a href="#answers">$!lang.get("answers.title") ($!_q2)</a></li>
+		</ul>
+	</nav>
+
+	<section id="questions" aria-labelledby="sos-profile-q-title">
+		<h2 class="govuk-heading-l" id="sos-profile-q-title">$!lang.get("questions.title")</h2>
+		#if (!$questionslist || $questionslist.isEmpty())
+			<p class="govuk-body sos-muted">$!lang.get('profile.posts.noquestions')</p>
+		#else
+			#idskquestionslist($questionslist)
+			#idskpagination($itemcount1 "page1")
+		#end
+	</section>
+
+	<section id="answers" aria-labelledby="sos-profile-a-title">
+		<h2 class="govuk-heading-l" id="sos-profile-a-title">$!lang.get("answers.title")</h2>
+		#if (!$answerslist || $answerslist.isEmpty())
+			<p class="govuk-body sos-muted">$!lang.get('profile.posts.noanswers')</p>
+		#else
+			#idskprofanswers($answerslist)
+			#idskpagination($itemcount2 "page2")
+		#end
+	</section>
+</div>

@@ -1,1 +1,2 @@
-#answerspage($answerslist $showPost)
+## Platforma SOS: nová odpoveď (AJAX) sa vkladá do ID-SK detailu otázky
+#idskanswers($answerslist $showPost)

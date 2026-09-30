@@ -258,7 +258,8 @@ public class ScooldServer extends SpringBootServletInitializer implements WebMvc
 	@Bean
 	public VelocityConfigurer velocityConfigBean() {
 		Properties velocityProperties = new Properties();
-		velocityProperties.put(RuntimeConstants.VM_LIBRARY, "macro.vm");
+		// Platforma SOS: idsk/macros.vm obsahuje makrá pre ID-SK layout
+		velocityProperties.put(RuntimeConstants.VM_LIBRARY, "macro.vm,idsk/macros.vm,idsk/macros-admin.vm,idsk/macros-moderation.vm");
 		velocityProperties.put(RuntimeConstants.FILE_RESOURCE_LOADER_CACHE, CONF.inProduction());
 		velocityProperties.put(RuntimeConstants.VM_LIBRARY_AUTORELOAD, !CONF.inProduction());
 		velocityProperties.put(RuntimeConstants.VM_PERM_ALLOW_INLINE_REPLACE_GLOBAL, true);

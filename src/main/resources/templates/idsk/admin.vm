@@ -1,0 +1,634 @@
+## =====================================================================
+##  Platforma SOS – správa (admin) podľa ID-SK 3.0
+##  Sekcie sú samostatné URL (/admin/spaces, /admin/webhooks, ...), navigácia
+##  je zoznam odkazov (sos-tabs) s aria-current. Makrá: idsk/macros-admin.vm.
+## =====================================================================
+#if($request.getParameter("delete"))
+	## --- potvrdenie odstránenia objektu (napr. profilu) ---
+	#set($confirmlink = "")
+	#set($confirmlink = $confirmlink.concat("$!adminlink?confirmdelete=true&id=").concat($!utils.urlEncode($!request.getParameter('id'))))
+	#set($ref = "")#if($request.getParameter("returnto"))#set($ref = $request.getParameter("returnto"))#end
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-two-thirds-from-desktop">
+			<h1 class="govuk-heading-xl">$!lang.get("areyousure")</h1>
+			<p class="govuk-body-l">$!lang.get('idsk.admin.delete.lead')</p>
+			<form method="post" action="$!{confirmlink}">
+				#sectoken(false)
+				<div class="sos-form-actions">
+					<button type="submit" class="govuk-button govuk-button__warning" data-module="govuk-button">$!lang.get('yes')</button>
+					<a class="govuk-button govuk-button--sec" href="#if($ref.isEmpty())$!adminlink#else$!{ref}#end">$!lang.get("no")</a>
+				</div>
+			</form>
+		</div>
+	</div>
+#else
+	#set($_sp = $request.servletPath)
+	#if($_sp.endsWith("/spaces"))#set($_adm = "spaces")
+	#elseif($_sp.endsWith("/webhooks"))#set($_adm = "webhooks")
+	#elseif($_sp.endsWith("/backup-and-restore") && $scooldUtils.config.dataImportExportEnabled())#set($_adm = "backup")
+	#elseif($_sp.endsWith("/themes"))#set($_adm = "themes")
+	#elseif($_sp.endsWith("/api-keys") && $scooldUtils.isApiEnabled())#set($_adm = "apikeys")
+	#elseif($_sp.endsWith("/configuration") && $scooldUtils.config.configEditingEnabled())#set($_adm = "config")
+	#elseif($_sp.endsWith("/environment"))#set($_adm = "environment")
+	#elseif($_sp.endsWith("/system"))#set($_adm = "system")
+	#else#set($_adm = "dashboard")#end
+
+	<h1 class="govuk-heading-xl sos-admin-title">
+		<span class="govuk-caption-l">$!lang.get('administration.title')</span>
+		$!section
+	</h1>
+
+	<nav class="sos-admin-nav" aria-label="$!lang.get('idsk.admin.nav')">
+		<ul class="sos-tabs">
+			<li><a href="$adminlink/dashboard" #if($_adm == "dashboard")aria-current="page"#end>$!lang.get('admin.dashboard')</a></li>
+			<li><a href="$adminlink/spaces" #if($_adm == "spaces")aria-current="page"#end>$!lang.get("spaces.title")</a></li>
+			<li><a href="$adminlink/webhooks" #if($_adm == "webhooks")aria-current="page"#end>Webhooks</a></li>
+			#if($scooldUtils.config.dataImportExportEnabled())
+			<li><a href="$adminlink/backup-and-restore" #if($_adm == "backup")aria-current="page"#end>$!lang.get("backups.title")</a></li>
+			#end
+			<li><a href="$adminlink/themes" #if($_adm == "themes")aria-current="page"#end>$!lang.get("admin.themes")</a></li>
+			#if($scooldUtils.isApiEnabled())
+			<li><a href="$adminlink/api-keys" #if($_adm == "apikeys")aria-current="page"#end>$!lang.get('admin.apikeys')</a></li>
+			#end
+			#if($scooldUtils.config.configEditingEnabled())
+			<li><a href="$adminlink/configuration" #if($_adm == "config")aria-current="page"#end>$!lang.get('admin.configuration')</a></li>
+			#end
+			<li><a href="$adminlink/environment" #if($_adm == "environment")aria-current="page"#end>$!lang.get('admin.environment')</a></li>
+			<li><a href="$adminlink/system" #if($_adm == "system")aria-current="page"#end>$!lang.get('admin.system')</a></li>
+		</ul>
+	</nav>
+
+	#if($_adm == "spaces")
+	## =========================== OBLASTI ===========================
+	<div id="spaces-tab" class="sos-admin-section">
+		<form method="post" id="create-space-form" action="$adminlink/add-space" class="sos-admin-box">
+			<h2 class="govuk-heading-m">$!lang.get('admin.newspace')</h2>
+			<div class="govuk-form-group">
+				<label class="govuk-label" for="name_text">$!lang.get('name')</label>
+				<input class="govuk-input sos-admin-w23" type="text" id="name_text" name="space" maxlength="255" minlength="2" required>
+				## zobrazí sa, keď scoold.js pridá triede .invalid (chyba AJAX)
+				<p class="govuk-error-message sos-invalid-msg" aria-live="polite"><span class="govuk-visually-hidden">$!lang.get('idsk.error'):</span> $!lang.get('admin.spaceexists')</p>
+			</div>
+			<div class="govuk-form-group">
+				<div class="govuk-checkboxes govuk-checkboxes--small" data-module="govuk-checkboxes">
+					<div class="govuk-checkboxes__item">
+						<input class="govuk-checkboxes__input" type="checkbox" id="assigntoall-new" name="assigntoall">
+						<label class="govuk-label govuk-checkboxes__label" for="assigntoall-new">$!lang.get('assignspacetoall')</label>
+					</div>
+				</div>
+			</div>
+			<button class="govuk-button govuk-button__basic sos-mb-0" type="submit" data-module="govuk-button">$!lang.get('add')</button>
+		</form>
+
+		<h2 class="govuk-heading-m">$!lang.get('spaces.title')#if($itemcount && $itemcount.count > 0) ($!itemcount.count)#end</h2>
+		## prvý div je kotva pre scoold.js ($('.spaces-wrapper div:eq(0)').after(data))
+		<div class="spaces-wrapper sos-spaces">
+			<div class="sos-spaces__anchor" hidden></div>
+			#foreach($space in $spaces)
+				#idskspacebox($space)
+			#end
+		</div>
+		#idskpagination($itemcount "page")
+	</div>
+
+	#elseif($_adm == "webhooks")
+	## =========================== WEBHOOKY ===========================
+	<div id="webhooks-tab" class="sos-admin-section">
+		#if($scooldUtils.isWebhooksEnabled())
+		<form method="post" id="create-webhook-form" action="$adminlink/create-webhook" class="sos-admin-box">
+			#sectoken(false "CREATE_WEBHOOK")
+			<h2 class="govuk-heading-m">$!lang.get('idsk.admin.webhook.new')</h2>
+			<div class="govuk-form-group #if($error.get('targetUrl'))govuk-form-group--error#end">
+				<label class="govuk-label" for="targetUrl">$!lang.get('admin.destinationurl')</label>
+				#idskerror($error.get('targetUrl'))
+				<input class="govuk-input" type="url" id="targetUrl" name="targetUrl" minlength="7" placeholder="https://" required>
+			</div>
+			<div class="govuk-form-group">
+				<fieldset class="govuk-fieldset" aria-describedby="webhook-events-hint">
+					<legend class="govuk-fieldset__legend govuk-fieldset__legend--s">$!lang.get('admin.eventtriggers')</legend>
+					<div id="webhook-events-hint" class="govuk-hint">$!lang.get('idsk.admin.webhook.events.hint')</div>
+					<div class="govuk-checkboxes govuk-checkboxes--small sos-admin-cols" data-module="govuk-checkboxes">
+						#set($_whEvents = ["create", "update", "delete", "createAll", "updateAll", "deleteAll"])
+						#foreach($event in $_whEvents)
+						<div class="govuk-checkboxes__item">
+							<input class="govuk-checkboxes__input" type="checkbox" id="webhook-event-$foreach.count" name="events" value="$event" #if($event == "create")checked#end>
+							<label class="govuk-label govuk-checkboxes__label" for="webhook-event-$foreach.count"><code>$event</code></label>
+						</div>
+						#end
+						#foreach($event in $customHookEvents)
+						<div class="govuk-checkboxes__item">
+							<input class="govuk-checkboxes__input" type="checkbox" id="webhook-cevent-$foreach.count" name="events" value="$!event">
+							<label class="govuk-label govuk-checkboxes__label" for="webhook-cevent-$foreach.count"><code>$!event</code></label>
+						</div>
+						#end
+					</div>
+				</fieldset>
+			</div>
+			<div class="govuk-grid-row">
+				<div class="govuk-grid-column-one-third-from-desktop">
+					<div class="govuk-form-group">
+						<label class="govuk-label" for="webhook-types">$!lang.get('admin.typefilter')</label>
+						<select class="govuk-select sos-admin-wfull" id="webhook-types" name="type">
+							<option value="">&mdash;</option>
+							#foreach($type in $coreScooldTypes)
+							<option value="$!type">$!type</option>
+							#end
+						</select>
+					</div>
+				</div>
+				<div class="govuk-grid-column-one-third-from-desktop">
+					<div class="govuk-form-group">
+						<label class="govuk-label" for="filter">$!lang.get('admin.propfilter')</label>
+						<input class="govuk-input" type="text" id="filter" name="filter" placeholder="tags:tag1,tag2">
+					</div>
+				</div>
+				<div class="govuk-grid-column-one-third-from-desktop">
+					<div class="govuk-form-group">
+						<label class="govuk-label" for="webhook-json">$!lang.get('admin.payloadformat')</label>
+						<select class="govuk-select sos-admin-wfull" id="webhook-json" name="json" required>
+							<option value="true" selected="selected">JSON</option>
+							<option value="false">x-www-form-urlencoded</option>
+						</select>
+					</div>
+				</div>
+			</div>
+			<button class="govuk-button govuk-button__basic sos-mb-0" type="submit" data-module="govuk-button">$!lang.get('create')</button>
+		</form>
+
+		<h2 class="govuk-heading-m">Webhooks#if($itemcount1 && $itemcount1.count > 0) ($!itemcount1.count)#end</h2>
+		#if(!$webhooks || $webhooks.isEmpty())
+			<div class="sos-empty"><p class="govuk-body sos-mb-0">$!lang.get('idsk.admin.webhook.none')</p></div>
+		#else
+		<div class="webhooks-wrapper sos-webhooks">
+			#foreach($webhook in $webhooks)
+				#idskwebhookbox($webhook)
+			#end
+		</div>
+		#idskpagination($itemcount1 "page1")
+		#end
+		#else
+		<div class="sos-empty"><p class="govuk-body-l sos-mb-0">$!lang.get('admin.webhooksdisabled')</p></div>
+		#end
+	</div>
+
+	#elseif($_adm == "backup")
+	## =========================== ZÁLOHA A OBNOVA ===========================
+	<div id="backup-tab" class="sos-admin-section">
+		<div class="govuk-grid-row">
+			<div class="govuk-grid-column-one-third-from-desktop">
+				<section class="sos-admin-box" aria-labelledby="sos-export-h">
+					<h2 class="govuk-heading-m" id="sos-export-h">$!lang.get('idsk.admin.export.title')</h2>
+					<p class="govuk-body">$!lang.get('idsk.admin.export.lead')</p>
+					<a href="$adminlink/export" class="govuk-button govuk-button--sec sos-mb-0" data-module="govuk-button">$!lang.get('admin.export')</a>
+				</section>
+			</div>
+			<div class="govuk-grid-column-two-thirds-from-desktop">
+				<section class="sos-admin-box" aria-labelledby="sos-import-h">
+					<h2 class="govuk-heading-m" id="sos-import-h">$!lang.get('admin.import')</h2>
+					<form method="post" action="$adminlink/import" enctype="multipart/form-data" id="import-form">
+						<div class="govuk-form-group">
+							<label class="govuk-label" for="import-file">$!lang.get('admin.import.text')</label>
+							<div id="import-file-hint" class="govuk-hint">ZIP / JSON</div>
+							<input class="govuk-file-upload" id="import-file" name="file" type="file" accept=".json,.zip" aria-describedby="import-file-hint" required>
+						</div>
+						<div class="govuk-form-group">
+							<div class="govuk-checkboxes govuk-checkboxes--small" data-module="govuk-checkboxes">
+								<div class="govuk-checkboxes__item">
+									<input class="govuk-checkboxes__input" type="checkbox" id="import-isso" name="isso">
+									<label class="govuk-label govuk-checkboxes__label" for="import-isso">$!lang.get('admin.soarchive')</label>
+								</div>
+								<div class="govuk-checkboxes__item">
+									<input class="govuk-checkboxes__input" type="checkbox" id="import-deleteall" name="deleteall" aria-describedby="import-warning-label">
+									<label class="govuk-label govuk-checkboxes__label" for="import-deleteall">$!lang.get('admin.cleanimport')</label>
+								</div>
+							</div>
+						</div>
+						<p class="hide sos-admin-warning" id="import-warning-label" aria-live="polite">
+							<span class="sos-admin-warning__icon" aria-hidden="true">!</span>
+							<strong><span class="govuk-visually-hidden">$!lang.get('idsk.admin.warning'): </span>$!lang.get('admin.import.warn')</strong>
+						</p>
+						#set($disabledImportBtn = false)
+						#if($scooldimports && !$scooldimports.isEmpty() && $scooldimports.get(0).getProperty("status") == "pending")#set($disabledImportBtn = true)#end
+						<button type="submit" class="govuk-button govuk-button__basic sos-mb-0 rusure" data-module="govuk-button" #if($disabledImportBtn)disabled="disabled" aria-disabled="true"#end>$!lang.get('admin.import')</button>
+					</form>
+				</section>
+			</div>
+		</div>
+
+		#if($scooldimports && !$scooldimports.isEmpty())
+		<div class="sos-page-head">
+			<h2 class="govuk-heading-m">$!lang.get('admin.importlog')</h2>
+			<a href="$adminlink/clear-import-log" class="govuk-link post-refresh">$!lang.get('clear')<span class="govuk-visually-hidden"> $!lang.get('admin.importlog')</span></a>
+		</div>
+		<div class="sos-admin-scroll">
+			<table class="govuk-table sos-admin-wide">
+				<caption class="govuk-table__caption govuk-visually-hidden">$!lang.get('admin.importlog')</caption>
+				<thead class="govuk-table__head">
+					<tr class="govuk-table__row">
+						<th scope="col" class="govuk-table__header sos-admin-cap">$!lang.get('date')</th>
+						<th scope="col" class="govuk-table__header">$!lang.get('admin.importlog.user')</th>
+						<th scope="col" class="govuk-table__header">$!lang.get('admin.importlog.file')</th>
+						<th scope="col" class="govuk-table__header govuk-table__header--numeric">$!lang.get('admin.importlog.count')</th>
+						<th scope="col" class="govuk-table__header">$!lang.get('idsk.admin.status')</th>
+					</tr>
+				</thead>
+				<tbody class="govuk-table__body">
+				#foreach($import in $scooldimports)
+					<tr class="govuk-table__row">
+						<td class="govuk-table__cell sos-nowrap">#formatdate($!import.timestamp, "YYYY-MM-dd HH:mm")</td>
+						<td class="govuk-table__cell"><a class="govuk-link" href="$profilelink/$!import.creatorid">$!import.name</a></td>
+						<td class="govuk-table__cell sos-admin-break">$!import.getProperty("file")</td>
+						<td class="govuk-table__cell govuk-table__cell--numeric">$!import.getProperty("count")</td>
+						<td class="govuk-table__cell">
+							#if($!import.getProperty("status") == "pending")
+								<span class="sos-status sos-status--warning">$!lang.get('idsk.admin.import.pending')</span>
+							#elseif($!import.getProperty("status") == "failed")
+								<span class="sos-status sos-admin-status--error">$!lang.get('idsk.admin.import.failed')</span>
+							#else
+								<span class="sos-status sos-status--success">$!lang.get('idsk.admin.import.done')</span>
+							#end
+						</td>
+					</tr>
+				#end
+				</tbody>
+			</table>
+		</div>
+		#end
+	</div>
+
+	#elseif($_adm == "themes")
+	## =========================== MOTÍVY ===========================
+	<div id="themes-tab" class="sos-admin-section">
+		<form action="$adminlink/set-theme" method="post" id="select-theme-form" class="sos-admin-box">
+			<div class="govuk-grid-row">
+				<div class="govuk-grid-column-one-half-from-desktop">
+					<div class="govuk-form-group">
+						<fieldset class="govuk-fieldset">
+							<legend class="govuk-fieldset__legend govuk-fieldset__legend--m"><h2 class="govuk-fieldset__heading">$!lang.get('idsk.admin.theme.choose')</h2></legend>
+							#set($themesMap = {'default': ['grey-d3', 'red-d4'], 'red': ['red-d3', 'bluegrey-d3'], 'green': ['green-d3', 'brown-d3'],
+								'blue': ['blue-d3', 'lightblue-l2'], 'orange': ['orange', 'deeporange-d3'], 'mono': ['grey-d3', 'grey-l1'],
+								'dark': ['black', 'grey-d3'], 'custom': []})
+							<div class="govuk-radios govuk-radios--small" data-module="govuk-radios">
+							#foreach($theme in $themesMap.keySet())
+								<div class="govuk-radios__item">
+									<input class="govuk-radios__input" id="theme-$theme" name="theme" type="radio" value="$theme" #if($selectedTheme == $theme)checked#end>
+									<label class="govuk-label govuk-radios__label sos-theme-label" for="theme-$theme">
+										<span class="sos-admin-cap">$theme</span>
+										#if($themesMap.get($theme) && $themesMap.get($theme).size() > 1)
+										<span class="sos-swatch sos-swatch--$themesMap.get($theme).get(0)" aria-hidden="true"></span><span class="sos-swatch sos-swatch--$themesMap.get($theme).get(1)" aria-hidden="true"></span>
+										#end
+									</label>
+								</div>
+							#end
+							</div>
+						</fieldset>
+					</div>
+				</div>
+				<div class="govuk-grid-column-one-half-from-desktop">
+					<img src="$imageslink/${selectedTheme}_theme.png" id="theme-preview" class="sos-theme-preview" alt="$!lang.get('idsk.admin.theme.preview')">
+				</div>
+			</div>
+			#if($selectedTheme == "custom")#set($hideCSSbox = "")#else#set($hideCSSbox = "hide")#end
+			## scoold.js prepína triedu hide na rodičovskom div-e textarea
+			<div class="govuk-form-group ${hideCSSbox}">
+				<label class="govuk-label" for="theme-css">CSS</label>
+				<textarea class="govuk-textarea sos-admin-mono" id="theme-css" name="css" rows="12">$!customTheme</textarea>
+			</div>
+			<button type="submit" class="govuk-button govuk-button__basic sos-mb-0" data-module="govuk-button">$!lang.get('apply')</button>
+		</form>
+	</div>
+
+	#elseif($_adm == "apikeys")
+	## =========================== API KĽÚČE ===========================
+	<div id="api-tab" class="sos-admin-section">
+		#idskapikeyspage($adminlink $apiKeys $apiKeysExpirations)
+	</div>
+
+	#elseif($_adm == "config")
+	## =========================== KONFIGURÁCIA ===========================
+	<div id="configuration-tab" class="sos-admin-section">
+		<p class="govuk-body">$!lang.get('idsk.admin.config.lead')</p>
+		#set($cfgIdx = 0)
+		#foreach($key in $configMetadata.keySet())
+		<details class="govuk-details sos-config" #if($key == "Core")open#end>
+			<summary class="govuk-details__summary">
+				<span class="govuk-details__summary-text">$key</span>
+			</summary>
+			<div class="govuk-details__text sos-config__body">
+				#foreach($pkey in $configMetadata.get($key).keySet())
+				#set($cfgIdx = $cfgIdx + 1)
+				#set($cfgMeta = $configMetadata.get($key).get($pkey))
+				<div class="sos-config-item">
+					<div class="sos-config-item__info">
+						<p class="govuk-body sos-config-item__key">
+							<code id="cfg-key-$cfgIdx">$pkey</code>
+							<span class="sos-status sos-status--neutral">$!cfgMeta.type</span>
+							#if($cfgMeta.tags)<span class="sos-status sos-status--warning">$!cfgMeta.tags</span>#end
+						</p>
+						#set($_description = $utils.markdownToHtml($cfgMeta.description))
+						<div class="govuk-body-s sos-config-item__desc" id="cfg-desc-$cfgIdx">$!_description</div>
+					</div>
+					<form method="post" action="$adminlink/save-config" class="configuration-form sos-config-item__form">
+						#set($pk = $pkey.substring(7))
+						#set($propval = $configMap.getConfigValue($pk, $cfgMeta.defaultValue))
+						<input name="key" type="hidden" value="$pkey">
+						#if($cfgMeta.type == "Boolean")
+							## scoold.js: .filled-in -> next("span") prepína text on/off (data-on/data-off)
+							<div class="govuk-checkboxes govuk-checkboxes--small">
+								<label class="govuk-checkboxes__item sos-config-bool">
+									<input class="govuk-checkboxes__input filled-in" name="value" type="checkbox" #if($propval == "true")checked="checked"#end aria-describedby="cfg-key-$cfgIdx"><span class="govuk-label govuk-checkboxes__label" data-on="$!lang.get('on')" data-off="$!lang.get('off')">#if($propval == "true")$!lang.get('on')#else$!lang.get('off')#end</span>
+								</label>
+							</div>
+							<input name="isbool" type="hidden" value="true">
+						#else
+							<label class="govuk-visually-hidden" for="cfg-val-$cfgIdx">$pkey</label>
+							#if(($pk.contains("secret") || $pk.contains("password") || $pk.contains("privatekey") || $pk.contains("pass")) && $propval && !$propval.isEmpty())
+								#set($propval = "****************")
+								<input class="govuk-input" id="cfg-val-$cfgIdx" type="password" name="value" value="$!propval" autocomplete="off">
+							#else
+								<input class="govuk-input" id="cfg-val-$cfgIdx" type="text" name="value" value="$!propval">
+							#end
+						#end
+						<button type="submit" class="govuk-button govuk-button--sec rusure" data-module="govuk-button">$!lang.get('save')<span class="govuk-visually-hidden"> $pkey</span></button>
+					</form>
+				</div>
+				#end
+			</div>
+		</details>
+		#end
+	</div>
+
+	#elseif($_adm == "environment")
+	## =========================== PROSTREDIE ===========================
+	<div id="environment-tab" class="sos-admin-section">
+		<div class="sos-admin-scroll">
+			<table class="govuk-table sos-admin-kv">
+				<caption class="govuk-table__caption govuk-visually-hidden">$!lang.get('admin.environment')</caption>
+				<tbody class="govuk-table__body">
+					<tr class="govuk-table__row"><th scope="row" class="govuk-table__header">Scoold</th>
+						<td class="govuk-table__cell">version <code>$!scooldVersion</code> (rev. <code>$!scooldRevision</code>)</td></tr>
+					<tr class="govuk-table__row"><th scope="row" class="govuk-table__header">Production mode</th><td class="govuk-table__cell"><code>$!IN_PRODUCTION</code></td></tr>
+					<tr class="govuk-table__row"><th scope="row" class="govuk-table__header">Para app</th><td class="govuk-table__cell"><code>$!paraapp</code></td></tr>
+					<tr class="govuk-table__row"><th scope="row" class="govuk-table__header">Para version</th><td class="govuk-table__cell"><code>$!paraver</code></td></tr>
+					<tr class="govuk-table__row"><th scope="row" class="govuk-table__header">Para endpoint</th><td class="govuk-table__cell"><code class="sos-admin-break">$!endpoint</code></td></tr>
+					<tr class="govuk-table__row"><th scope="row" class="govuk-table__header">Client IP</th><td class="govuk-table__cell"><code>$!request.getRemoteAddr()</code></td></tr>
+					<tr class="govuk-table__row"><th scope="row" class="govuk-table__header">Client Host</th><td class="govuk-table__cell"><code>$!request.getRemoteHost()</code></td></tr>
+				</tbody>
+			</table>
+		</div>
+		<form method="post" action="$adminlink/reindex" class="sos-admin-box">
+			<h2 class="govuk-heading-m">$!lang.get('idsk.admin.reindex.title')</h2>
+			<p class="govuk-body">$!lang.get('idsk.admin.reindex.lead')</p>
+			<button type="submit" class="govuk-button govuk-button__warning sos-mb-0 rusure" data-module="govuk-button">$!lang.get('idsk.admin.reindex')</button>
+		</form>
+		<details class="govuk-details">
+			<summary class="govuk-details__summary">
+				<span class="govuk-details__summary-text">$!lang.get('admin.environment.licenses')</span>
+			</summary>
+			<div class="govuk-details__text">
+				#if($licenses && !$licenses.isEmpty())
+				<ul class="govuk-list sos-admin-licenses">
+					#foreach($entry in $licenses)
+					<li>
+						<strong>$!entry.name</strong> &ndash; $!entry.licenses
+						<br><code class="sos-admin-break">$!entry.gav</code>
+						#if($entry.url && !$entry.url.isEmpty())
+						<br><a class="govuk-link sos-admin-break" href="$!entry.url" target="_blank" rel="noopener noreferrer">$!entry.url<span class="govuk-visually-hidden"> ($!lang.get('idsk.admin.newwindow'))</span></a>
+						#end
+					</li>
+					#end
+				</ul>
+				#else
+				<p class="govuk-body sos-muted">$!lang.get('search.notfound')</p>
+				#end
+			</div>
+		</details>
+	</div>
+
+	#elseif($_adm == "system")
+	## =========================== SYSTÉM ===========================
+	<div id="system-tab" class="sos-admin-section">
+		<div class="sos-admin-scroll">
+			<table class="govuk-table sos-admin-kv">
+				<caption class="govuk-table__caption govuk-visually-hidden">$!lang.get('admin.system')</caption>
+				<tbody class="govuk-table__body">
+				#foreach($key in ["java.vm.name", "java.version", "java.vendor", "user.timezone", "os.name", "os.arch", "os.version", "file.encoding"])
+					<tr class="govuk-table__row">
+						<th scope="row" class="govuk-table__header"><code>$key</code></th>
+						<td class="govuk-table__cell"><code>$!utils.getSystemProperty($key)</code></td>
+					</tr>
+				#end
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	#else
+	## =========================== PREHĽAD (dashboard) ===========================
+	## id dashboard-tab + data-* + id canvasov (questions-chart, traffic-chart, topics-chart) používa dashboard.js
+	<div id="dashboard-tab" class="sos-admin-section sos-dashboard" data-dashboard-url="$adminlink/dashboard/data" data-period="$!dashboardPeriod">
+		<nav class="sos-dashboard__period" aria-label="$!lang.get('idsk.admin.period')">
+			<span class="govuk-body-s sos-muted" aria-hidden="true">$!lang.get('idsk.admin.period'):</span>
+			<ul class="sos-tabs">
+				#foreach($per in ['7d', '30d', '12w', '12m'])
+				<li><a href="$adminlink?period=$per" #if($dashboardPeriod == $per)aria-current="page"#end>$!lang.get("idsk.admin.period.$per")</a></li>
+				#end
+			</ul>
+		</nav>
+
+		<h2 class="govuk-visually-hidden">$!lang.get('idsk.admin.summary')</h2>
+		<ul class="sos-admin-stats">
+			#foreach($key in ['questions', 'answers', 'users', 'views', 'clickRate', 'abandonment'])
+			#set($metric = $dashboardSummary.get($key))
+			<li class="sos-admin-stat">
+				<span class="sos-admin-stat__label">
+					#if($key == 'views')$!lang.get('posts.views')
+					#elseif($key == 'questions')$!lang.get('questions.title')
+					#elseif($key == 'answers')$!lang.get('answers.title')
+					#else$!lang.get("admin.dashboard.$key")#end
+				</span>
+				<span class="sos-admin-stat__value">$!metric.get('value')#if($key == 'abandonment') %#end</span>
+				#if($metric.get('change') && $metric.get('change') != 0)
+					<span class="sos-admin-stat__change #if($metric.get('change') > 0)sos-admin-stat__change--up#else sos-admin-stat__change--down#end">
+						<span aria-hidden="true">#if($metric.get('change') > 0)&#9650;#else&#9660;#end</span>
+						#if($metric.get('change') > 0)+#end$!metric.get('change') % $!lang.get('admin.dashboard.previous')
+					</span>
+				#end
+			</li>
+			#end
+		</ul>
+
+		<div class="govuk-grid-row">
+			<div class="govuk-grid-column-two-thirds-from-desktop">
+				<section class="sos-admin-panel" aria-labelledby="dash-qa-h">
+					<h2 class="govuk-heading-s" id="dash-qa-h">$!lang.get('admin.dashboard.questionsAnswers')</h2>
+					<div class="sos-admin-chart"><canvas id="questions-chart" role="img" aria-label="$!lang.get('admin.dashboard.questionsAnswers')"></canvas></div>
+				</section>
+				#if($trackingEnabled)
+				<section class="sos-admin-panel" aria-labelledby="dash-traffic-h">
+					<h2 class="govuk-heading-s" id="dash-traffic-h">$!lang.get('admin.dashboard.traffic')</h2>
+					<div class="sos-admin-chart"><canvas id="traffic-chart" role="img" aria-label="$!lang.get('admin.dashboard.traffic')"></canvas></div>
+				</section>
+				#end
+				<section class="sos-admin-panel" aria-labelledby="dash-trending-h">
+					<h2 class="govuk-heading-s" id="dash-trending-h">$!lang.get('admin.dashboard.trending')</h2>
+					#if($dashboard.get('trending') && !$dashboard.get('trending').isEmpty())
+					<div class="sos-admin-scroll">
+						<table class="govuk-table sos-admin-compact">
+							<thead class="govuk-table__head">
+								<tr class="govuk-table__row">
+									<th scope="col" class="govuk-table__header">$!lang.get('posts.question')</th>
+									<th scope="col" class="govuk-table__header govuk-table__header--numeric">$!lang.get('posts.views')</th>
+									<th scope="col" class="govuk-table__header govuk-table__header--numeric">$!lang.get('answers.title')</th>
+								</tr>
+							</thead>
+							<tbody class="govuk-table__body">
+							#foreach($question in $dashboard.get('trending'))
+								<tr class="govuk-table__row">
+									<td class="govuk-table__cell"><a class="govuk-link" href="$questionlink/$!question.get('id')">$!question.get('title')</a></td>
+									<td class="govuk-table__cell govuk-table__cell--numeric">$!question.get('views')</td>
+									<td class="govuk-table__cell govuk-table__cell--numeric">$!question.get('answers')</td>
+								</tr>
+							#end
+							</tbody>
+						</table>
+					</div>
+					#else
+					<p class="govuk-body sos-muted">$!lang.get('search.notfound')</p>
+					#end
+				</section>
+				<section class="sos-admin-panel" aria-labelledby="dash-unanswered-h">
+					<h2 class="govuk-heading-s" id="dash-unanswered-h">$!lang.get('admin.dashboard.unanswered')</h2>
+					#if($dashboard.get('oldestUnanswered') && !$dashboard.get('oldestUnanswered').isEmpty())
+					<div class="sos-admin-scroll">
+						<table class="govuk-table sos-admin-compact">
+							<thead class="govuk-table__head">
+								<tr class="govuk-table__row">
+									<th scope="col" class="govuk-table__header">$!lang.get('posts.question')</th>
+									<th scope="col" class="govuk-table__header govuk-table__header--numeric">$!lang.get('posts.posted')</th>
+								</tr>
+							</thead>
+							<tbody class="govuk-table__body">
+							#foreach($question in $dashboard.get('oldestUnanswered'))
+								<tr class="govuk-table__row">
+									<td class="govuk-table__cell"><a class="govuk-link" href="$questionlink/$!question.get('id')">$!question.get('title')</a></td>
+									<td class="govuk-table__cell govuk-table__cell--numeric sos-nowrap">$!question.get('date')</td>
+								</tr>
+							#end
+							</tbody>
+						</table>
+					</div>
+					#else
+					<p class="govuk-body sos-muted">$!lang.get('search.notfound')</p>
+					#end
+				</section>
+			</div>
+			<div class="govuk-grid-column-one-third-from-desktop">
+				<section class="sos-admin-panel" aria-labelledby="dash-topics-h">
+					<h2 class="govuk-heading-s" id="dash-topics-h">$!lang.get('admin.dashboard.topTopics')</h2>
+					<div class="sos-admin-chart"><canvas id="topics-chart" role="img" aria-label="$!lang.get('admin.dashboard.topTopics')"></canvas></div>
+				</section>
+				<section class="sos-admin-panel" aria-labelledby="dash-leaders-h">
+					<h2 class="govuk-heading-s" id="dash-leaders-h">$!lang.get('admin.dashboard.leaderboard')</h2>
+					#if($trackingEnabled)
+					<table class="govuk-table sos-admin-compact">
+						<thead class="govuk-table__head">
+							<tr class="govuk-table__row">
+								<th scope="col" class="govuk-table__header">$!lang.get('admin.importlog.user')</th>
+								<th scope="col" class="govuk-table__header govuk-table__header--numeric">$!lang.get('admin.dashboard.visits')</th>
+							</tr>
+						</thead>
+						<tbody class="govuk-table__body">
+						#foreach($user in $dashboard.get('leaderboard'))
+							<tr class="govuk-table__row">
+								<td class="govuk-table__cell">#idskperson($user)</td>
+								<td class="govuk-table__cell govuk-table__cell--numeric">$!user.get('visits')</td>
+							</tr>
+						#end
+						</tbody>
+					</table>
+					#else
+					<p class="govuk-body sos-muted">$!lang.get('admin.dashboard.trackingDisabled')</p>
+					#end
+				</section>
+				<section class="sos-admin-panel" aria-labelledby="dash-contrib-h">
+					<h2 class="govuk-heading-s" id="dash-contrib-h">$!lang.get('admin.dashboard.contributors')</h2>
+					<table class="govuk-table sos-admin-compact">
+						<thead class="govuk-table__head">
+							<tr class="govuk-table__row">
+								<th scope="col" class="govuk-table__header">$!lang.get('admin.importlog.user')</th>
+								<th scope="col" class="govuk-table__header govuk-table__header--numeric">$!lang.get('posts')</th>
+							</tr>
+						</thead>
+						<tbody class="govuk-table__body">
+						#foreach($user in $dashboard.get('contributors'))
+							<tr class="govuk-table__row">
+								<td class="govuk-table__cell">#idskperson($user)</td>
+								<td class="govuk-table__cell govuk-table__cell--numeric">$!user.get('posts')</td>
+							</tr>
+						#end
+						</tbody>
+					</table>
+				</section>
+				<section class="sos-admin-panel" aria-labelledby="dash-staff-h">
+					<h2 class="govuk-heading-s" id="dash-staff-h">$!lang.get('admin.dashboard.staff')</h2>
+					<ul class="govuk-list sos-admin-staff">
+					#foreach($user in $dashboard.get('staff').get('members'))
+						<li>#idskperson($user)</li>
+					#end
+					</ul>
+					#if($dashboard.get('staff').get('hasMore'))
+					<p class="govuk-body-s sos-mb-0"><a class="govuk-link" href="$peoplelink/tag/groups:(admins%20OR%20mods)">$!lang.get('showall')</a></p>
+					#end
+				</section>
+			</div>
+		</div>
+
+		<section class="sos-admin-panel" aria-labelledby="dash-audit-h">
+			<h2 class="govuk-heading-s" id="dash-audit-h">$!lang.get('admin.dashboard.auditLog')</h2>
+			#if($trackingEnabled)
+				#if($activities && !$activities.isEmpty())
+				<div class="sos-admin-scroll">
+					<table class="govuk-table sos-admin-compact sos-admin-wide sos-audit">
+						<thead class="govuk-table__head">
+							<tr class="govuk-table__row">
+								<th scope="col" class="govuk-table__header">$!lang.get('admin.importlog.user')</th>
+								<th scope="col" class="govuk-table__header">$!lang.get('idsk.admin.audit.action')</th>
+								<th scope="col" class="govuk-table__header">$!lang.get('idsk.admin.audit.resource')</th>
+								<th scope="col" class="govuk-table__header">IP</th>
+								<th scope="col" class="govuk-table__header sos-admin-cap">$!lang.get('date')</th>
+							</tr>
+						</thead>
+						<tbody class="govuk-table__body">
+						#foreach($activity in $activities)
+							<tr class="govuk-table__row">
+								<td class="govuk-table__cell">
+									#set($activityuser = {'name': $!activity.getName(), 'id': $activity.getCreatorid()})
+									#idskperson($activityuser)
+								</td>
+								<td class="govuk-table__cell"><code class="#if($!activity.properties.action.contains('fail'))sos-admin-alert#end">$!activity.properties.action</code></td>
+								<td class="govuk-table__cell sos-admin-break">
+									#if($!activity.properties.link)
+									<a class="govuk-link" href="$!activity.properties.link">$!activity.properties.resource</a>
+									#else
+									$!activity.properties.resource
+									#end
+								</td>
+								<td class="govuk-table__cell"><code>$!activity.properties.ip</code></td>
+								<td class="govuk-table__cell sos-nowrap">#formatdate($!activity.timestamp, "YYYY-MM-dd HH:mm:ss")</td>
+							</tr>
+						#end
+						</tbody>
+					</table>
+				</div>
+				#idskpagination($itemcount "page")
+				#else
+				<p class="govuk-body sos-muted">$!lang.get('search.notfound')</p>
+				#end
+			#else
+				<p class="govuk-body sos-muted">$!lang.get('admin.dashboard.trackingDisabled')</p>
+			#end
+		</section>
+	</div>
+	#end
+#end

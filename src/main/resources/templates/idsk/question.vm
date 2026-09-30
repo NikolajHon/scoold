@@ -1,0 +1,159 @@
+## Platforma SOS – detail otázky s odpoveďami (ID-SK)
+## Bez hlasovania a reputácie; zachované sú prijatá odpoveď, komentáre, úpravy a moderovanie.
+<nav class="govuk-breadcrumbs" aria-label="Breadcrumb">
+	<ol class="govuk-breadcrumbs__list">
+		<li class="govuk-breadcrumbs__list-item"><a class="govuk-breadcrumbs__link" href="$questionslink">$!lang.get('questions.title')</a></li>
+		#if($showPost.space && !$scooldUtils.isDefaultSpace($showPost.space))
+		<li class="govuk-breadcrumbs__list-item"><a class="govuk-breadcrumbs__link" href="$questionslink/space/$!scooldUtils.getSpaceId($!showPost.space)">$!scooldUtils.getSpaceName($!showPost.space)</a></li>
+		#end
+	</ol>
+</nav>
+
+<div class="govuk-grid-row questionpage">
+	<div class="govuk-grid-column-two-thirds-from-desktop">
+		<div>#idskstatus($showPost)</div>
+		<h1 class="govuk-heading-xl" id="post-title">
+			#if($showPost.isReply())
+				<a href="$!showPost.getPostLinkForRedirect()" class="govuk-link">&larr; $!{showPost.title}</a>
+			#else
+				$!{showPost.title}
+			#end
+		</h1>
+
+		#ajaxloading(true)
+		#idskpostbox($showPost $showPost)
+
+		#if ($showPost.deprecated)
+		<div class="govuk-notification-banner govuk-notification-banner--warning" role="region" aria-labelledby="sos-deprecated-title">
+			<div class="govuk-notification-banner__header">
+				<h2 class="govuk-notification-banner__title" id="sos-deprecated-title">$!lang.get('deprecated')</h2>
+			</div>
+			<div class="govuk-notification-banner__content"><p class="govuk-notification-banner__heading">$!lang.get("posts.deprecated")</p></div>
+		</div>
+		#end
+
+		#if (!$showPost.isReply())
+			<div class="answers-head">
+				<h2 class="govuk-heading-l">$!lang.get("answers.title") ($!itemcount.count)</h2>
+				#if ($answerslist && !$answerslist.isEmpty())
+					#set($_sortby = "")#if($request.getParameter('sortby'))#set($_sortby = $request.getParameter('sortby'))#end
+					<ul class="sos-tabs">
+						<li><a href="$!showPost.getPostLinkForRedirect()" #if($_sortby != "newest")aria-current="page"#end>$!lang.get("idsk.sort.recommended")</a></li>
+						<li><a href="$!showPost.getPostLinkForRedirect()?sortby=newest" #if($_sortby == "newest")aria-current="page"#end>$!lang.get("newest")</a></li>
+					</ul>
+				#else
+					<p class="govuk-body sos-muted">$!lang.get('idsk.noanswers')</p>
+				#end
+			</div>
+
+			<div class="sos-answers">
+				#idskanswers($answerslist $showPost)
+			</div>
+			#idskpagination($itemcount "page")
+
+			#if(!$showPost.isClosed())
+				#if($request.servletPath.endsWith("/write"))
+					#set($answerBoxHideClass = "")
+					#set($showAnswerBoxClass = "hide")
+				#else
+					#set($answerBoxHideClass = "hide")
+					#set($showAnswerBoxClass = "")
+				#end
+				#if(!$authenticated)#set($showAnswerBoxClass = "")#end
+
+				<div class="$!{showAnswerBoxClass}">
+					#if ($authenticated)
+						<a href="#write-post" class="govuk-button govuk-button__basic show-answer-question-form" role="button">$!lang.get("posts.writeanswer")</a>
+					#else
+						<a href="$signinlink?returnto=$!{returnto.replaceAll('/write', '')}/write" rel="nofollow" class="govuk-button govuk-button__basic" role="button">$!lang.get("posts.writeanswer")</a>
+					#end
+				</div>
+
+				#if ($authenticated)
+				<div class="$!{answerBoxHideClass}">
+					<form method="post" id="answer-question-form">
+						<a id="write-post"></a>
+						<div class="govuk-form-group emoji-picker-container #if($error.get('body'))govuk-form-group--error#end">
+							<h2 class="govuk-label-wrapper">
+								<label class="govuk-label govuk-label--m" for="answer_body">
+									#if ($showPost.isQuestion())$!lang.get("posts.youranswer")#else$!lang.get("feedback.writereply")#end
+								</label>
+							</h2>
+							#idskerror($error.get("body"))
+							<textarea class="edit-post" id="answer_body" name="body" maxlength="$MAX_TEXT_LENGTH" minlength="10"></textarea>
+						</div>
+						<input type="hidden" name="answer" value="true">
+
+						<div class="govuk-form-group">
+							<div class="govuk-checkboxes govuk-checkboxes--small" data-module="govuk-checkboxes">
+								<div class="govuk-checkboxes__item">
+									#if($showPost.followers && $showPost.followers.containsKey($authUser.user.id))
+										<input class="govuk-checkboxes__input" type="checkbox" id="follow-thread-check" checked="checked">
+									#elseif(($authUser.replyEmailsEnabled && $scooldUtils.isMine($showPost, $authUser)))
+										<input class="govuk-checkboxes__input" type="checkbox" id="follow-thread-check" checked="checked" disabled>
+									#else
+										<input class="govuk-checkboxes__input" type="checkbox" id="follow-thread-check">
+									#end
+									<label class="govuk-label govuk-checkboxes__label" for="follow-thread-check">$!lang.get('posts.emailme')</label>
+								</div>
+								#if($scooldUtils.isAnonymityEnabled() && !$authUser.anonymityEnabled)
+								<div class="govuk-checkboxes__item">
+									<input class="govuk-checkboxes__input" type="checkbox" name="anonymous" value="true" id="post-anon-check">
+									<label class="govuk-label govuk-checkboxes__label" for="post-anon-check">$!lang.get('posts.postanonymously')</label>
+								</div>
+								#end
+							</div>
+						</div>
+
+						<button class="govuk-button govuk-button__basic submit-spinner" type="submit" data-module="govuk-button">$!lang.get('post')</button>
+					</form>
+				</div>
+				#end
+			#else
+				<div class="govuk-notification-banner" role="region" aria-labelledby="sos-closed-title">
+					<div class="govuk-notification-banner__header">
+						<h2 class="govuk-notification-banner__title" id="sos-closed-title">$!lang.get('idsk.closed')</h2>
+					</div>
+					<div class="govuk-notification-banner__content"><p class="govuk-notification-banner__heading">$!lang.get("posts.closed")</p></div>
+				</div>
+			#end
+		#end
+	</div>
+
+	<aside class="govuk-grid-column-one-third-from-desktop" aria-label="$!lang.get('idsk.details')">
+		<div class="sos-aside">
+			<h2 class="govuk-heading-s">$!lang.get('idsk.details')</h2>
+			<dl class="govuk-body">
+				<dt>$!lang.get('idsk.author')</dt>
+				<dd>#idskperson($showPost.author)</dd>
+				<dt>$!lang.get('posts.posted')</dt>
+				<dd>#formatdate($showPost.timestamp "dd. MM. yyyy, HH:mm")</dd>
+				#if($showPost.lastactivity)
+				<dt>$!lang.get('profile.about.lastseen')</dt>
+				<dd>#formatdate($showPost.lastactivity "")</dd>
+				#end
+				<dt>$!lang.get('idsk.answercount')</dt>
+				<dd>$!showPost.answercount</dd>
+				#if($showPost.space && !$scooldUtils.isDefaultSpace($showPost.space))
+				<dt>$!lang.get('idsk.space')</dt>
+				<dd>$!scooldUtils.getSpaceName($!showPost.space)</dd>
+				#end
+				#if ($showPost.tags && !$showPost.tags.isEmpty() && !$showPost.tags.get(0).isEmpty())
+				<dt>$!lang.get('tags.title')</dt>
+				<dd class="tags-aside">#idsktags($showPost)</dd>
+				#end
+			</dl>
+		</div>
+
+		#if ($similarquestions && !$similarquestions.isEmpty())
+		<div class="sos-aside similar">
+			<h2 class="govuk-heading-s">$!lang.get("posts.similar")</h2>
+			<ul class="govuk-list govuk-list--spaced">
+				#foreach($showSimilar in $similarquestions)
+				<li><a href="#getpostlink($showSimilar false false)" class="govuk-link">$!showSimilar.title</a></li>
+				#end
+			</ul>
+		</div>
+		#end
+	</aside>
+</div>

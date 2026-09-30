@@ -1,0 +1,27 @@
+## Platforma SOS – dokumentácia API (Swagger UI) v ID-SK rámci
+## Swagger CSS (swagger-ui.css, api.css) načítava idsk/layout.vm len pre /apidocs. Kontajner #swagger-ui a skripty sú zachované.
+<h1 class="govuk-heading-xl">$!lang.get("idsk.apidocs.title")</h1>
+<p class="govuk-body-l">$!lang.get("idsk.apidocs.lead")</p>
+<p class="govuk-body"><a class="govuk-link" href="$!{CONTEXT_PATH}/api.json">$!lang.get("idsk.apidocs.json")</a></p>
+<div class="sos-apidocs">
+	<div id="swagger-ui"></div>
+</div>
+<script nonce="$cspNonce" src="$!scriptslink/swagger-ui-bundle.js"></script>
+<script nonce="$cspNonce" src="$!scriptslink/swagger-ui-standalone-preset.js"></script>
+<script nonce="$cspNonce">
+	window.onload = function() {
+		window.ui = SwaggerUIBundle({
+			url: "api.json",
+			dom_id: '#swagger-ui',
+			deepLinking: true,
+			presets: [
+				SwaggerUIBundle.presets.apis,
+				SwaggerUIStandalonePreset
+			],
+			plugins: [
+				SwaggerUIBundle.plugins.DownloadUrl
+			],
+			layout: "StandaloneLayout"
+		});
+	};
+</script>

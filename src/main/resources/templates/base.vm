@@ -1,3 +1,11 @@
+## Platforma SOS: všetky stránky sa vykresľujú v ID-SK layoute (templates/idsk/).
+## Pôvodný layout Scooldu nižšie ostáva len ako záloha pre stránky mimo zoznamu.
+#set($idskViews = ["questions.vm", "question.vm", "search.vm", "signin.vm", "about.vm", "privacy.vm", "terms.vm",
+	"languages.vm", "notfound.vm", "error.vm", "apidocs.vm", "profile.vm", "people.vm", "tags.vm", "settings.vm",
+	"onboarding.vm", "admin.vm", "reports.vm", "revisions.vm", "feedback.vm", "comment.vm"])
+#if($idskViews.contains($path))
+#parse("idsk/layout.vm")
+#else
 <!DOCTYPE html>
 <!-- Powered by            __    __
      ____ ____ ___   ___  / /___/ /
@@ -485,3 +493,4 @@
 		#externalScripts(false)
 	</body>
 </html>
+#end
