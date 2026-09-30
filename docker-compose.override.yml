@@ -13,6 +13,9 @@ services:
       # pod emuláciou Para štartuje pomalšie, Scoold musí počkať,
       # kým Para zapíše root kľúče do para-application.conf
       - BOOT_SLEEP=30
+    depends_on:
+      - para
+      - slovlex
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.3
@@ -29,3 +32,12 @@ services:
       - KC_HTTP_ENABLED=true
     volumes:
       - ./keycloak:/opt/keycloak/data/import:ro
+      # Platforma SOS: prihlasovacia téma v štýle ID-SK (v start-dev sa nekešuje, zmeny vidno po obnovení stránky)
+      - ./keycloak/themes/sos:/opt/keycloak/themes/sos:ro
+
+  # Platforma SOS: karty právnych predpisov zo Slov-Lexu (scraper static.slov-lex.sk), interná služba
+  slovlex:
+    image: slovlex-service:dev
+    build: ./slovlex-service
+    ports:
+      - "8090:8090"   # len pre lokálne testovanie API, v produkcii nepublikovať

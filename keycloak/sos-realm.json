@@ -3,16 +3,29 @@
   "enabled": true,
   "displayName": "Platforma SOS",
   "internationalizationEnabled": true,
-  "supportedLocales": ["sk", "en"],
+  "supportedLocales": [
+    "sk",
+    "en"
+  ],
   "defaultLocale": "sk",
   "loginWithEmailAllowed": true,
   "registrationAllowed": false,
   "groups": [
-    { "name": "sos-admin" },
-    { "name": "sos-moderator" },
-    { "name": "obce" },
-    { "name": "poskytovatelia" },
-    { "name": "rezort" }
+    {
+      "name": "sos-admin"
+    },
+    {
+      "name": "sos-moderator"
+    },
+    {
+      "name": "obce"
+    },
+    {
+      "name": "poskytovatelia"
+    },
+    {
+      "name": "rezort"
+    }
   ],
   "clients": [
     {
@@ -25,9 +38,15 @@
       "secret": "scoold-dev-secret",
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": false,
-      "redirectUris": ["http://localhost:8080/oauth2_auth*"],
-      "webOrigins": ["http://localhost:8000"],
-      "attributes": { "post.logout.redirect.uris": "http://localhost:8000/*" },
+      "redirectUris": [
+        "http://localhost:8080/oauth2_auth*"
+      ],
+      "webOrigins": [
+        "http://localhost:8000"
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "http://localhost:8000/*"
+      },
       "protocolMappers": [
         {
           "name": "groups",
@@ -41,29 +60,95 @@
             "userinfo.token.claim": "true"
           }
         }
-      ]
+      ],
+      "serviceAccountsEnabled": true
     }
   ],
   "users": [
     {
-      "username": "admin.sos", "email": "admin@sos.local", "firstName": "Admin", "lastName": "SOS",
-      "enabled": true, "emailVerified": true, "groups": ["sos-admin"],
-      "credentials": [{ "type": "password", "value": "admin", "temporary": false }]
+      "username": "admin.sos",
+      "email": "admin@sos.local",
+      "firstName": "Admin",
+      "lastName": "SOS",
+      "enabled": true,
+      "emailVerified": true,
+      "groups": [
+        "sos-admin"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin",
+          "temporary": false
+        }
+      ]
     },
     {
-      "username": "obec.test", "email": "obec@sos.local", "firstName": "Jana", "lastName": "Obecná",
-      "enabled": true, "emailVerified": true, "groups": ["obce"],
-      "credentials": [{ "type": "password", "value": "test", "temporary": false }]
+      "username": "obec.test",
+      "email": "obec@sos.local",
+      "firstName": "Jana",
+      "lastName": "Obecná",
+      "enabled": true,
+      "emailVerified": true,
+      "groups": [
+        "obce"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "test",
+          "temporary": false
+        }
+      ]
     },
     {
-      "username": "poskytovatel.test", "email": "poskytovatel@sos.local", "firstName": "Peter", "lastName": "Poskytovateľ",
-      "enabled": true, "emailVerified": true, "groups": ["poskytovatelia"],
-      "credentials": [{ "type": "password", "value": "test", "temporary": false }]
+      "username": "poskytovatel.test",
+      "email": "poskytovatel@sos.local",
+      "firstName": "Peter",
+      "lastName": "Poskytovateľ",
+      "enabled": true,
+      "emailVerified": true,
+      "groups": [
+        "poskytovatelia"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "test",
+          "temporary": false
+        }
+      ]
     },
     {
-      "username": "rezort.test", "email": "rezort@sos.local", "firstName": "Mária", "lastName": "Rezortná",
-      "enabled": true, "emailVerified": true, "groups": ["rezort", "sos-moderator"],
-      "credentials": [{ "type": "password", "value": "test", "temporary": false }]
+      "username": "rezort.test",
+      "email": "rezort@sos.local",
+      "firstName": "Mária",
+      "lastName": "Rezortná",
+      "enabled": true,
+      "emailVerified": true,
+      "groups": [
+        "rezort",
+        "sos-moderator"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "test",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "service-account-scoold",
+      "enabled": true,
+      "serviceAccountClientId": "scoold",
+      "clientRoles": {
+        "realm-management": [
+          "view-users",
+          "query-groups"
+        ]
+      }
     }
-  ]
+  ],
+  "loginTheme": "sos"
 }

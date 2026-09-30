@@ -37,4 +37,19 @@ scoold.security.oauth.download_avatars = false
 scoold.security.oauth.provider = "Prihlásiť sa cez Keycloak"
 # Keycloak presmeruje prehliadač späť na Para (musí byť dostupná z prehliadača)
 scoold.security.redirect_uri = "http://localhost:8080"
+# po odhlásení zo Scooldu ukončiť aj reláciu v Keycloaku (inak sa používateľ prihlási znova bez hesla)
+scoold.signout_url = "http://localhost:8081/realms/sos/protocol/openid-connect/logout?client_id=scoold&post_logout_redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Fsignin%3Fcode%3D5%26success%3Dtrue"
 
+#############  SLOV-LEX  #############
+
+# interná adresa slovlex-service (karty právnych predpisov)
+scoold.slovlex_service_url = "http://slovlex:8090"
+
+# Platforma SOS: roly zo skupín v Keycloaku (bez Scoold Pro), pozri KEYCLOAK.md
+scoold.keycloak.role_sync_enabled = true
+scoold.keycloak.url = "http://keycloak:8080"
+scoold.keycloak.realm = "sos"
+scoold.keycloak.admin_group = "sos-admin"
+scoold.keycloak.mod_group = "sos-moderator"
+scoold.keycloak.role_sync_interval_sec = 300
+# client_id / client_secret sa predvolene berú z oa2_app_id / oa2_secret

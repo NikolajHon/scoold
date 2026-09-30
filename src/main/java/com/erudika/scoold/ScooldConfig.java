@@ -3334,6 +3334,90 @@ public class ScooldConfig extends Config {
 	}
 
 	@Documented(position = 2881,
+			identifier = "slovlex_service_url",
+			category = "Miscellaneous",
+			description = "Platforma SOS: internal URL of the slovlex-service, which provides cards of Slovak legal "
+					+ "acts scraped from Slov-Lex (e.g. `http://slovlex:8090`). Law citations are linked even when blank.")
+	public String slovlexServiceUrl() {
+		return getConfigParam("slovlex_service_url", "");
+	}
+
+	@Documented(position = 2882,
+			identifier = "keycloak.role_sync_enabled",
+			value = "false",
+			type = Boolean.class,
+			category = "Miscellaneous",
+			description = "Platforma SOS: enable/disable synchronization of roles from Keycloak groups. Scoold reads the "
+					+ "groups of the signed-in user via the Keycloak Admin REST API (service account of the client) "
+					+ "and sets the user's role to admin, moderator or regular user.")
+	public boolean keycloakRoleSyncEnabled() {
+		return getConfigBoolean("keycloak.role_sync_enabled", false);
+	}
+
+	@Documented(position = 2883,
+			identifier = "keycloak.url",
+			category = "Miscellaneous",
+			description = "Platforma SOS: base URL of Keycloak reachable from Scoold (e.g. `http://keycloak:8080`).")
+	public String keycloakUrl() {
+		return getConfigParam("keycloak.url", "");
+	}
+
+	@Documented(position = 2884,
+			identifier = "keycloak.realm",
+			value = "sos",
+			category = "Miscellaneous",
+			description = "Platforma SOS: Keycloak realm used for role synchronization.")
+	public String keycloakRealm() {
+		return getConfigParam("keycloak.realm", "sos");
+	}
+
+	@Documented(position = 2885,
+			identifier = "keycloak.client_id",
+			category = "Miscellaneous",
+			description = "Platforma SOS: Keycloak client with an enabled service account (role `view-users`). "
+					+ "Defaults to `oa2_app_id`.")
+	public String keycloakClientId() {
+		return getConfigParam("keycloak.client_id", oauthAppId(""));
+	}
+
+	@Documented(position = 2886,
+			identifier = "keycloak.client_secret",
+			category = "Miscellaneous",
+			description = "Platforma SOS: secret of the Keycloak client used for role synchronization. "
+					+ "Defaults to `oa2_secret`.")
+	public String keycloakClientSecret() {
+		return getConfigParam("keycloak.client_secret", oauthSecret(""));
+	}
+
+	@Documented(position = 2887,
+			identifier = "keycloak.admin_group",
+			value = "sos-admin",
+			category = "Miscellaneous",
+			description = "Platforma SOS: comma-separated Keycloak groups whose members become Scoold admins.")
+	public String keycloakAdminGroup() {
+		return getConfigParam("keycloak.admin_group", "sos-admin");
+	}
+
+	@Documented(position = 2888,
+			identifier = "keycloak.mod_group",
+			value = "sos-moderator",
+			category = "Miscellaneous",
+			description = "Platforma SOS: comma-separated Keycloak groups whose members become Scoold moderators.")
+	public String keycloakModGroup() {
+		return getConfigParam("keycloak.mod_group", "sos-moderator");
+	}
+
+	@Documented(position = 2889,
+			identifier = "keycloak.role_sync_interval_sec",
+			value = "300",
+			type = Integer.class,
+			category = "Miscellaneous",
+			description = "Platforma SOS: how often (in seconds) the groups of a signed-in user are re-read from Keycloak.")
+	public int keycloakRoleSyncIntervalSec() {
+		return getConfigInt("keycloak.role_sync_interval_sec", 300);
+	}
+
+	@Documented(position = 2881,
 			identifier = "security.hosturl_aliases",
 			category = "Miscellaneous",
 			description = "Provides a comma-separated list of alternative `host_url` public addresses to be used when "

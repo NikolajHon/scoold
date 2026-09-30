@@ -114,6 +114,20 @@
 			TAG_CREATION_ALLOWED = ${scooldUtils.config.tagCreationAllowed()};
 		</script>
 		<script nonce="$cspNonce" src="$!scriptslink/scoold.js?r=$!rev"></script>
+		<script nonce="$cspNonce">
+			// Platforma SOS: odhlásenie zo Scooldu aj z Keycloaku (single logout)
+			document.addEventListener("submit", function (e) {
+				var f = e.target;
+				if (!f.classList || !f.classList.contains("sos-signout-form")) { return; }
+				e.preventDefault();
+				var next = f.getAttribute("data-logout-url") || (CONTEXT_PATH + "/");
+				fetch(f.action, { method: "POST", credentials: "same-origin", redirect: "manual" })
+					.catch(function () {})
+					.then(function () { window.location.href = next; });
+			}, true);
+		</script>
+		## Platforma SOS: odkazy na predpisy zo Slov-Lexu + karta predpisu (slovlex-service)
+		<script nonce="$cspNonce" src="$!scriptslink/idsk/slovlex.js?r=$!rev" defer></script>
 		#if($includeChartJS)
 		<script nonce="$cspNonce" src="$!scriptslink/chart.umd.min.js?r=$!rev"></script>
 		<script nonce="$cspNonce" src="$!scriptslink/dashboard.js?r=$!rev"></script>

@@ -320,10 +320,11 @@ public final class ScooldUtils {
 		if (!StringUtils.isBlank(approvedDomain)) {
 			APPROVED_DOMAINS.add(approvedDomain.toLowerCase());
 		}
-		// multiple admins are allowed only in Scoold PRO
-		String admin = StringUtils.substringBefore(CONF.admins(), ",");
-		if (!StringUtils.isBlank(admin)) {
-			ADMINS.add(admin);
+		// Platforma SOS: všetky e-maily/identifikátory zo scoold.admins (pôvodne len prvý – obmedzenie OSS verzie)
+		for (String admin : StringUtils.split(StringUtils.trimToEmpty(CONF.admins()), ',')) {
+			if (!StringUtils.isBlank(admin)) {
+				ADMINS.add(admin.trim());
+			}
 		}
 	}
 
@@ -401,7 +402,7 @@ public final class ScooldUtils {
 				authUser.setCurrentSpace(getSpaceIdFromCookie(authUser, req));
 				JWTClaimsSet jwtClaims = getUnverifiedClaimsFromJWT(jwt);
 				boolean updatedSpacesAndGroups = assignSpacesAndGroupsFromIdentityProvider(authUser, u, jwtClaims, res);
-				boolean updatedRank = promoteOrDemoteUser(authUser, u);
+				boolean updatedRank = promoteOrDemoteUser(authUser, u, jwtClaims);
 				boolean updatedProfile = updateProfilePictureAndName(authUser, u);
 				if (updatedRank || updatedProfile) {
 					authUser.update();
@@ -441,8 +442,22 @@ public final class ScooldUtils {
 				(req.getServletPath().startsWith("/api/config") && !CONF.configEditingEnabled());
 	}
 
-	private boolean promoteOrDemoteUser(Profile authUser, User u) {
+	private boolean promoteOrDemoteUser(Profile authUser, User u, JWTClaimsSet jwtClaims) {
 		if (authUser != null && authUser.getEditorRoleEnabled()) {
+			// Platforma SOS: rola podľa skupín v Keycloaku (keycloak.role_sync_enabled)
+			long loginTime = (jwtClaims != null && jwtClaims.getIssueTime() != null) ? jwtClaims.getIssueTime().getTime() : 0L;
+			String idpGroup = KeycloakRoleSync.resolveGroup(u, loginTime);
+			if (idpGroup != null) {
+				// e-maily v scoold.admins ostávajú správcami vždy (núdzový prístup)
+				String group = isRecognizedAsAdmin(u) ? User.Groups.ADMINS.toString() : idpGroup;
+				if (!group.equals(authUser.getGroups())) {
+					logger.info("User '{}' with id={} role synced from Keycloak: {} -> {}.", u.getName(),
+							authUser.getId(), authUser.getGroups(), group);
+					authUser.setGroups(group);
+					return true;
+				}
+				return false;
+			}
 			if (!isAdmin(authUser) && isRecognizedAsAdmin(u)) {
 				logger.info("User '{}' with id={} promoted to admin.", u.getName(), authUser.getId());
 				authUser.setGroups(User.Groups.ADMINS.toString());

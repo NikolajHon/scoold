@@ -88,7 +88,12 @@
 						#if($isAdmin)
 						<a href="$adminlink" class="govuk-button govuk-button--sec" role="button">$!lang.get('administration.title')</a>
 						#end
-						<a href="$signoutlink" class="govuk-button govuk-button--texted govuk-button--texted__warning post-refresh" role="button">$!lang.get('signout')</a>
+						## Odhlásenie: POST na /signout (ukončí reláciu Scooldu) a potom prechod na scoold.signout_url
+						## (odhlásenie aj z Keycloaku). Rieši to skript v layout.vm – priame presmerovanie z formulára
+						## na inú doménu by zablokovala CSP (form-action 'self').
+						<form method="post" action="$signoutlink" class="sos-signout-form" data-logout-url="$!scooldUtils.config.signoutUrl()">
+							<button type="submit" class="govuk-button govuk-button--texted govuk-button--texted__warning">$!lang.get('signout')</button>
+						</form>
 					</div>
 				</div>
 			</dialog>
@@ -492,6 +497,11 @@
 			#end
 		</div>
 
+		## Formulár komentára musí byť PRVÝ div hneď za .sos-post-actions – scoold.js (a.next-div-toggle)
+		## prepína "hide" na najbližšom nasledujúcom div-e rodiča odkazu "Pridať komentár".
+		#if($canComment)
+			#idskcommentform($showpost.id)
+		#end
 		<div class="comments post-comments">
 			<div class="page-content">
 				#foreach($_c in $showpost.comments)
@@ -499,9 +509,6 @@
 				#end
 			</div>
 		</div>
-		#if($canComment)
-			#idskcommentform($showpost.id)
-		#end
 	</div>
 
 	#if($scooldUtils.canEdit($showpost, $authUser))

@@ -1,0 +1,26 @@
+server:
+  port: 8090
+
+spring:
+  application:
+    name: slovlex-service
+  jackson:
+    default-property-inclusion: non_null
+
+slovlex:
+  # statická verzia portálu, z ktorej čítame HTML (Slov-Lex nemá verejné API)
+  base-url: https://static.slov-lex.sk
+  # odkazy pre používateľov smerujú na hlavný portál
+  portal-url: https://www.slov-lex.sk
+  cache-ttl: 24h
+  not-found-ttl: 1h
+  timeout: 20s
+  max-concurrent: 2
+  user-agent: "PlatformaSOS-slovlex-service/0.1 (+kontakt: prevadzkovatel Platformy SOS)"
+  zone: Europe/Bratislava
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

@@ -1,0 +1,100 @@
+/*
+ * Platforma SOS – úpravy ID-SK 3.0 pre prihlasovacie stránky Keycloaku.
+ * Farby a písmo sú rovnaké ako vo fóre (src/main/resources/static/styles/idsk/sos.css).
+ */
+:root {
+	--sos-primary: #126dff;
+	--sos-primary-dark: #072c66;
+	--sos-text: #0b0c0c;
+	--sos-muted: #505a5f;
+	--sos-border: #e0e0e0;
+	--sos-bg-light: #eff5fe;
+	--sos-success: #078814;
+	--sos-warning: #d96e00;
+	--sos-error: #c3112b;
+	--sos-focus: #ffdf0f;
+}
+
+html, body.sos-kc-body { background: #fff; }
+body.sos-kc-body { margin: 0; font-family: "Source Sans Pro", arial, sans-serif; color: var(--sos-text); }
+.hidden, [hidden] { display: none !important; }
+
+.govuk-skip-link { position: absolute; left: -9999px; top: 0; z-index: 1000; padding: 10px 15px; background: var(--sos-focus); color: var(--sos-text); font-weight: 700; }
+.govuk-skip-link:focus { left: 15px; }
+
+/* hlavička */
+.sos-kc-logo img { height: 40px; width: auto; display: block; }
+.govuk-predheader { display: flex; align-items: center; justify-content: space-between; }
+
+/* jazyk */
+.sos-kc-locale { position: relative; }
+.sos-kc-locale .govuk-button { display: inline-flex; align-items: center; gap: 2px; margin: 0; text-transform: capitalize; }
+.sos-kc-locale__list {
+	display: none; position: absolute; right: 0; z-index: 20; min-width: 160px; margin: 4px 0 0; padding: 8px 0;
+	list-style: none; background: #fff; border: 1px solid var(--sos-border); border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,.15);
+}
+#kc-current-locale-link[aria-expanded="true"] + .sos-kc-locale__list,
+.sos-kc-locale:focus-within .sos-kc-locale__list { display: block; }
+.sos-kc-locale__list li a { display: block; padding: 8px 16px; text-transform: capitalize; }
+
+/* obsah */
+.sos-kc-page { padding-top: 32px; padding-bottom: 64px; min-height: 55vh; }
+.sos-kc-page:focus { outline: none; }
+.sos-kc-card { max-width: 560px; }
+.sos-kc-card__header h1 { margin-bottom: 16px; }
+.sos-kc-required { color: var(--sos-muted); }
+.sos-kc-username { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+
+/* formulár */
+#kc-form-login .govuk-input, #kc-content-wrapper .govuk-input { width: 100%; box-sizing: border-box; }
+.govuk-label { display: block; margin-bottom: 6px; }
+.sos-kc-input-group { display: flex; gap: 8px; align-items: stretch; }
+.sos-kc-input-group .govuk-input { flex: 1; }
+.sos-kc-eye { margin: 0 !important; min-width: 48px; padding: 0 10px !important; display: inline-flex; align-items: center; justify-content: center; }
+.sos-icon-visibility::before { content: "visibility"; }
+.sos-icon-visibility-off::before { content: "visibility_off"; }
+.sos-icon-restart::before { content: "restart_alt"; }
+.material-icons { font-family: "Material Icons", sans-serif; font-feature-settings: "liga"; }
+
+.sos-kc-settings { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+.sos-kc-settings .checkbox label { display: inline-flex; align-items: center; gap: 8px; font-size: 1.1875rem; cursor: pointer; }
+.sos-kc-settings .checkbox input { width: 24px; height: 24px; accent-color: var(--sos-primary-dark); }
+#kc-form-options a, #kc-content-wrapper a:not(.govuk-button) { color: var(--sos-primary); text-decoration: underline; }
+#kc-content-wrapper a:not(.govuk-button):focus { outline: 3px solid var(--sos-focus); background: var(--sos-focus); color: var(--sos-text); }
+
+.sos-kc-block, input.sos-kc-block { width: 100%; display: block; }
+#kc-form-buttons { margin-top: 24px; }
+input.govuk-button { font-family: inherit; cursor: pointer; }
+.govuk-error-message { display: block; margin-top: 6px; color: var(--sos-error); font-weight: 700; }
+.govuk-input[aria-invalid="true"] { border-color: var(--sos-error); }
+
+/* oznamy */
+.sos-kc-alert { margin-bottom: 24px; border: 5px solid var(--sos-primary-dark); }
+.sos-kc-alert .govuk-notification-banner__content { padding: 12px 16px; }
+.sos-kc-alert .govuk-notification-banner__heading { margin: 0; font-size: 1.1875rem; }
+.sos-kc-alert--error { border-color: var(--sos-error); }
+.sos-kc-alert--success { border-color: var(--sos-success); }
+.sos-kc-alert--warning { border-color: var(--sos-warning); }
+
+/* registrácia, iní poskytovatelia identity */
+.sos-kc-signup { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--sos-border); font-size: 1.1875rem; }
+.sos-kc-social { margin-top: 32px; }
+.sos-kc-social hr { border: 0; border-top: 1px solid var(--sos-border); }
+.sos-kc-social h2 { font-size: 1.3rem; }
+.sos-kc-social__list { list-style: none; margin: 0; padding: 0; }
+.sos-kc-social__list li { margin-bottom: 8px; }
+
+/* päta */
+.govuk-footer { margin-top: 0; }
+.sos-kc-footer-logo { height: 40px; width: auto; }
+
+/* stránky s tabuľkou/zoznamom (napr. výber autentifikátora, OTP) */
+#kc-content-wrapper ul:not(.sos-kc-social__list) { padding-left: 20px; }
+.pf-l-stack, .select-auth-container { display: flex; flex-direction: column; gap: 12px; }
+.select-auth-box-parent { display: flex; align-items: center; gap: 12px; padding: 16px; border: 1px solid var(--sos-border); border-radius: 4px; cursor: pointer; }
+.select-auth-box-parent:hover { border-color: var(--sos-primary); }
+
+@media (max-width: 40.0625rem) {
+	.sos-kc-page { padding-top: 16px; }
+	.sos-kc-logo img { height: 32px; }
+}

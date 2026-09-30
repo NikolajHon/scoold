@@ -42,3 +42,7 @@ AGENTS.md
 
 # Platforma SOS – lokálne konfigurácie so secretmi
 scoold-application.conf
+
+# IDE
+.idea/
+.DS_Store

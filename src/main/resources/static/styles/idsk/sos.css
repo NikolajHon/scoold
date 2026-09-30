@@ -708,3 +708,19 @@ body.sos-onboarding { min-height: 100vh; }
 	width: 96px; height: 96px; min-width: 96px; flex: 0 0 auto;
 	align-self: center; border-radius: 50%; object-fit: cover; margin-bottom: 12px;
 }
+
+/* ===== Slov-Lex: odkazy a karta právneho predpisu (scripts/idsk/slovlex.js) ===== */
+a.sos-law { text-decoration-style: dotted; }
+.sos-law-card {
+	position: absolute; z-index: 2000; box-sizing: border-box; padding: 16px 20px;
+	background: #fff; color: var(--sos-text); border: 1px solid var(--sos-border); border-top: 4px solid var(--sos-primary-dark);
+	border-radius: 4px; box-shadow: 0 8px 24px rgba(0,0,0,.18); font-size: 1rem; line-height: 1.4;
+}
+.sos-law-card[hidden] { display: none; }
+.sos-law-card p { margin: 0 0 8px; }
+.sos-law-card__caption { color: var(--sos-muted); font-size: .9rem; }
+.sos-law-card__title { font-weight: 700; }
+.sos-law-card__meta { color: var(--sos-muted); }
+.sos-law-card__links { margin: 8px 0; padding-left: 20px; }
+.sos-law-card__links li { margin-bottom: 4px; }
+.sos-law-card__source { color: var(--sos-muted); font-size: .85rem; margin-bottom: 0 !important; }
