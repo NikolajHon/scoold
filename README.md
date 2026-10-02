@@ -1,3 +1,5 @@
+> **Platforma SOS:** tento fork obsahuje úpravy pre Platformu SOS – návod na spustenie je v [PLATFORMA-SOS.md](PLATFORMA-SOS.md).
+
 <div align="center">
   <br>
   <picture>

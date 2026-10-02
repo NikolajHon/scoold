@@ -1,0 +1,38 @@
+# Platforma SOS – demo portál so SSO cez Keycloak (realm "sos").
+# Prehliadač chodí na Keycloak cez verejnú adresu (KC_PUBLIC), backend cez internú (KC_INTERNAL).
+server:
+  port: 8082
+  servlet:
+    session:
+      cookie:
+        # iný názov ako JSESSIONID – cookies na localhoste nerozlišujú porty (Para/Scoold)
+        name: PORTALSESSION
+
+app:
+  public-url: ${PUBLIC_URL:http://localhost:8082}
+  forum-url: ${FORUM_URL:http://localhost:8000}
+  # IS CSRÚ – v deme mock služba csru-mock (docker-compose.override.yml)
+  csru-url: ${CSRU_URL:http://localhost:8091}
+  keycloak-logout-url: ${KC_PUBLIC:http://localhost:8081}/realms/sos/protocol/openid-connect/logout
+  # issuer v tokenoch Keycloaku (KC_HOSTNAME) – kontroluje sa pri back-channel logoute
+  keycloak-issuer: ${KC_PUBLIC:http://localhost:8081}/realms/sos
+
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-id: ${PORTAL_CLIENT_ID:portal-demo}
+            client-secret: ${PORTAL_CLIENT_SECRET:portal-dev-secret}
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope: openid,profile,email
+        provider:
+          keycloak:
+            # bez issuer-uri: issuer je http://localhost:8081/..., ale backend v dockeri volá keycloak:8080
+            authorization-uri: ${KC_PUBLIC:http://localhost:8081}/realms/sos/protocol/openid-connect/auth
+            token-uri: ${KC_INTERNAL:http://localhost:8081}/realms/sos/protocol/openid-connect/token
+            user-info-uri: ${KC_INTERNAL:http://localhost:8081}/realms/sos/protocol/openid-connect/userinfo
+            jwk-set-uri: ${KC_INTERNAL:http://localhost:8081}/realms/sos/protocol/openid-connect/certs
+            user-name-attribute: preferred_username

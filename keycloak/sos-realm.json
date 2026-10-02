@@ -45,7 +45,10 @@
         "http://localhost:8000"
       ],
       "attributes": {
-        "post.logout.redirect.uris": "http://localhost:8000/*"
+        "post.logout.redirect.uris": "http://localhost:8000/*",
+        "backchannel.logout.url": "http://scoold:8000/sos/backchannel-logout",
+        "backchannel.logout.session.required": "true",
+        "backchannel.logout.revoke.offline.tokens": "false"
       },
       "protocolMappers": [
         {
@@ -61,7 +64,46 @@
           }
         }
       ],
-      "serviceAccountsEnabled": true
+      "serviceAccountsEnabled": true,
+      "frontchannelLogout": false
+    },
+    {
+      "clientId": "portal-demo",
+      "name": "Portál SOS (demo SSO)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "portal-dev-secret",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": [
+        "http://localhost:8082/login/oauth2/code/keycloak"
+      ],
+      "webOrigins": [
+        "http://localhost:8082"
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "http://localhost:8082/*",
+        "backchannel.logout.url": "http://portal:8082/backchannel-logout",
+        "backchannel.logout.session.required": "true",
+        "backchannel.logout.revoke.offline.tokens": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "groups",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-group-membership-mapper",
+          "config": {
+            "claim.name": "groups",
+            "full.path": "false",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ],
+      "frontchannelLogout": false
     }
   ],
   "users": [

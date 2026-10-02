@@ -128,6 +128,10 @@
 		</script>
 		## Platforma SOS: odkazy na predpisy zo Slov-Lexu + karta predpisu (slovlex-service)
 		<script nonce="$cspNonce" src="$!scriptslink/idsk/slovlex.js?r=$!rev" defer></script>
+		## Platforma SOS: návrat do partnerskej aplikácie (sos_back)
+		<script nonce="$cspNonce" src="$!scriptslink/idsk/sos-back.js?r=$!rev" defer></script>
+		## Platforma SOS: jednotné odhlásenie – kontrola relácie v Keycloaku
+		#if($authenticated)<script nonce="$cspNonce" src="$!scriptslink/idsk/sos-session.js?r=$!rev" defer></script>#end
 		#if($includeChartJS)
 		<script nonce="$cspNonce" src="$!scriptslink/chart.umd.min.js?r=$!rev"></script>
 		<script nonce="$cspNonce" src="$!scriptslink/dashboard.js?r=$!rev"></script>

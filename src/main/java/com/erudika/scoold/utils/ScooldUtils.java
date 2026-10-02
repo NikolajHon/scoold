@@ -395,6 +395,14 @@ public final class ScooldUtils {
 				".js", ".css", ".svg", ".png", ".jpg", ".ico", ".gif", ".woff2", ".woff", "people/avatar", "/two-factor")) {
 			User u = pc.me(jwt);
 			setConnectedToPara(true);
+			if (KeycloakBackchannelLogout.isLoggedOut(u, getUnverifiedClaimsFromJWT(jwt))) {
+				// Platforma SOS: jednotné odhlásenie – Keycloak oznámil (back-channel), že sa používateľ odhlásil
+				logger.info("User '{}' signed out in Keycloak – ending Scoold session (back-channel logout).", u.getName());
+				KeycloakRoleSync.forget(u.getId());
+				clearSession(req, res);
+				res.sendRedirect(CONF.serverUrl() + CONF.serverContextPath() + SIGNINLINK + "?code=5&success=true");
+				return null;
+			}
 			if (u != null && isEmailDomainApproved(u.getEmail())) {
 				authUser = getOrCreateProfile(u, req);
 				authUser.setUser(u);

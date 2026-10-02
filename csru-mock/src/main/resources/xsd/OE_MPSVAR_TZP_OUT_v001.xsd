@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- edited with XMLSpy v2020 sp1 (x64) (http://www.altova.com) by Michal Šutek (MIM, s.r.o.) -->
+<xs:schema xmlns="http://csru/gov/sk/TZP_OUT/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://csru/gov/sk/TZP_OUT/1.0" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="tzp" type="TzpCType"/>
+	<xs:complexType name="DisabilityCType">
+		<xs:annotation>
+			<xs:documentation>Obdobie, v ktorom bola/je osoba považovaná za občana s ŤZP</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="from" type="xs:gYearMonth"/>
+			<xs:element name="to" type="xs:gYearMonth" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="CardCType">
+		<xs:annotation>
+			<xs:documentation>Informácia o vydanom preukaze ŤZP(-S) alebo parkovacom preukaze</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="id" type="xs:string"/>
+			<xs:element name="validFrom" type="xs:date"/>
+			<xs:element name="validTo" type="xs:date" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="DisabilityCardCType">
+		<xs:annotation>
+			<xs:documentation>Informácia o vydanom preukaze ŤZP(-S)</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="CardCType">
+				<xs:sequence>
+					<xs:element name="type" type="DisabilityCardTypeSType"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="PhysicalPersonCType">
+		<xs:sequence>
+			<xs:element name="givenName" type="xs:string" minOccurs="0"/>
+			<xs:element name="familyName" type="xs:string" minOccurs="0"/>
+			<xs:element name="dateOfBirth" type="xs:date" minOccurs="0"/>
+			<xs:element name="identifier" type="IdentifierCType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="IdentifierCType">
+		<xs:sequence>
+			<xs:element name="identifierType" type="CodeTableValueSType"/>
+			<xs:element name="value" type="xs:string"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="PersonCType">
+		<xs:sequence>
+			<xs:element name="physicalPerson" type="PhysicalPersonCType"/>
+			<xs:element name="parkingCard" type="CardCType" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Údaje o vydaných preukazoch ŤZP(-S)</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="disabilityCard" type="DisabilityCardCType" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Údaje o vydaných preukazoch ŤZP(-S)</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="disability" type="DisabilityCType" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Časovo neprekrývajúce sa obdobia, v ktorých bola osoba považovaná za ŤZP</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="TzpCType">
+		<xs:sequence>
+			<xs:element name="person" type="PersonCType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="dateChanged" type="xs:dateTime" use="required">
+			<xs:annotation>
+				<xs:documentation>Časová značka platnosti údajov v dávke</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:simpleType name="CodeTableValueSType">
+		<xs:annotation>
+			<xs:documentation>Kód číselníkovej položky</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="32"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="DisabilityCardTypeSType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="tzp">
+				<xs:annotation>
+					<xs:documentation>preukaz ŤZP</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="tzp-s">
+				<xs:annotation>
+					<xs:documentation>preukaz ŤZP-S</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>

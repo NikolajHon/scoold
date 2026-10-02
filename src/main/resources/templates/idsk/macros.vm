@@ -63,6 +63,11 @@
 				</form>
 
 				<div class="govuk-header__actionPanel desktop mobile-hidden sos-user-panel">
+					#if($sosPortalUrl && !$sosPortalUrl.isEmpty())
+						<a id="sos-back-link" href="$!sosPortalUrl/" data-portal="$!sosPortalUrl"
+							 class="govuk-button govuk-button--sec sos-back-btn" title="$!utils.stripHtml($sosPortalName)">
+							<span class="material-icons" aria-hidden="true">arrow_back</span> $!utils.stripHtml($sosPortalName)</a>
+					#end
 					#if($authenticated)
 						<button type="button" class="govuk-button govuk-header__profile_button" title="$!lang.get('idsk.profile')" aria-haspopup="dialog">$!idskInitials</button>
 					#else

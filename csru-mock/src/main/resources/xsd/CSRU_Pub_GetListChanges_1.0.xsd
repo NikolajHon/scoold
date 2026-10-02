@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- edited with XMLSpy v2020 rel. 2 (x64) (http://www.altova.com) by stefan.stoder@mim.sk (MIM, s.r.o.) -->
+<xs:schema xmlns="http://csru/gov/sk/Pub_GetListChanges/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://csru/gov/sk/Pub_GetListChanges/1.0" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="RegisterChanges" type="RegisterChangesCType">
+		<xs:annotation>
+			<xs:documentation>Zmeny v registroch</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:complexType name="RegisterChangesCType">
+		<xs:sequence>
+			<xs:element name="Register" type="xs:string"/>
+			<xs:element name="Changes" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Zmeny</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="ChangesInDay" type="ChangesInDayCType" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>Zmeny za den</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="CountDays" type="xs:integer">
+				<xs:annotation>
+					<xs:documentation>Pocet dni v davke</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="CountChangesTotal" type="xs:integer">
+				<xs:annotation>
+					<xs:documentation>Celkovy pocet zmien</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="ChangesInDayCType">
+		<xs:sequence>
+			<xs:element name="DateOfChange" type="xs:date">
+				<xs:annotation>
+					<xs:documentation>Datum, den, zmeny</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="CountChangesInDay" type="xs:integer">
+				<xs:annotation>
+					<xs:documentation>Pocet zmien za den</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Subjects">
+				<xs:annotation>
+					<xs:documentation>Subjekty</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Subject" type="SubjectCType" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>Subjekt</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="SubjectCType">
+		<xs:sequence>
+			<xs:element name="SubjectData">
+				<xs:annotation>
+					<xs:documentation>Data subjektu</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Identifiers" type="IdentifierCType">
+							<xs:annotation>
+								<xs:documentation>Identifikátory subjektu</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="GivenName" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Meno osoby</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="FamilyName" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Priezvisko osoby</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="DateOfBirth" type="xs:string" minOccurs="0">
+							<xs:annotation>
+								<xs:documentation>Datum narodenia osoby</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="ChangeType" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Typ zmeny</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="TimeStamp" type="xs:dateTime">
+				<xs:annotation>
+					<xs:documentation>Casova znacka zmeny</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="IdentifierCType">
+		<xs:sequence>
+			<xs:element name="Identifier" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Identifikátor subjektu</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="IdentifierType" type="xs:string">
+							<xs:annotation>
+								<xs:documentation>Kód identifikátora (kod zo ZC CL004001)</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="IdentifierValue" type="xs:string">
+							<xs:annotation>
+								<xs:documentation>Hodnota prisluchajuca kodu identifikatora</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+</xs:schema>

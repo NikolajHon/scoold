@@ -1,0 +1,109 @@
+/*
+ * Agenda sociálnych služieb – doplnky k ID-SK 3.0.
+ * Základ: assets/idsk/idsk.min.css (@id-sk/frontend 3.0.0-beta) + assets/idsk/sos.css (spoločné so fórom).
+ * Tu len komponenty, ktoré ID-SK nemá (prehľad, detail, karty registrov). Triedy s prefixom sos-portal-.
+ */
+
+/* hlavička */
+.sos-logo-text img { height: 40px; }
+.govuk-header__actionPanel .govuk-button.sos-portal-btn {
+  display: inline-flex; align-items: center; gap: 6px; width: auto; margin-bottom: 0;
+  padding: 6px 14px; border: 2px solid var(--sos-primary); border-radius: 5px;
+  background-color: var(--sos-bg-light); color: var(--sos-primary-dark); font-weight: 700; white-space: nowrap;
+}
+.govuk-header__actionPanel .govuk-button.sos-portal-btn:hover { background-color: #dce9fd; }
+.govuk-header__actionPanel .govuk-button.sos-portal-btn .material-icons { font-size: 20px; color: inherit; }
+.sos-portal-user { display: inline-flex; align-items: center; gap: 10px; margin-left: 8px; }
+.sos-portal-user__text { display: flex; flex-direction: column; line-height: 1.2; }
+.sos-portal-user__text .govuk-body-s { margin: 0; }
+.govuk-header__actionPanel .govuk-button.sos-portal-logout {
+  width: auto; min-width: 0; margin-bottom: 0; padding: 6px 4px; color: var(--sos-error); background: transparent;
+}
+.govuk-header__actionPanel .govuk-button.sos-signin-btn { width: auto; }
+
+/* oznam „ukážka“ */
+.sos-demo-banner { margin: 16px 0 0; }
+.sos-demo-banner .govuk-notification-banner__content { padding-top: 8px; padding-bottom: 8px; }
+.sos-portal-toast { position: fixed; right: 20px; bottom: 20px; z-index: 50; margin: 0; max-width: 420px; box-shadow: 0 4px 16px rgba(0, 0, 0, .15); }
+
+/* úvod (neprihlásený) */
+.govuk-button.sos-start-btn { display: inline-flex; align-items: center; gap: 8px; width: auto; padding: 10px 20px; font-size: 1.1875rem; }
+.sos-portal-steps { list-style: none; margin: 0 0 32px; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.sos-portal-steps .idsk-card { width: auto; max-width: none; }
+.sos-portal-steps code, .sos-portal-reg code, .govuk-body-s code { background: var(--sos-bg-light); padding: 1px 5px; border-radius: 3px; }
+
+/* prehľad */
+.sos-portal-h1 { margin-bottom: 16px; }
+.sos-portal-sso { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 10px 16px; background: var(--sos-bg-light); border-left: 5px solid var(--sos-primary); }
+.sos-portal-sso .material-icons { color: var(--sos-success); font-size: 22px; }
+.sos-portal-sso .sos-tag { margin: 0; background: #fff; }
+.sos-portal-stats { list-style: none; margin: 0 0 32px; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.sos-portal-stat { padding: 16px 20px; border: 1px solid var(--sos-border); border-top: 5px solid var(--sos-primary); border-radius: 4px; background: #fff; font-size: 1.1875rem; color: var(--sos-muted); }
+.sos-portal-stat__n { display: block; font-size: 2.5rem; font-weight: 700; line-height: 1.1; color: var(--sos-text); }
+.sos-portal-stat--posud { border-top-color: var(--sos-warning); }
+.sos-portal-stat--rozh { border-top-color: var(--sos-success); }
+.sos-portal-stat--late { border-top-color: var(--sos-error); }
+
+/* stavy (doplnok k sos-status zo sos.css) */
+.sos-status--new { background: var(--sos-bg-light); color: var(--sos-primary-dark); }
+
+/* tabuľky */
+.sos-portal-table .govuk-table__caption { margin-bottom: 8px; }
+.sos-portal-row { cursor: pointer; }
+.govuk-table__row.sos-portal-row:hover { background-color: #f3f7ff; }
+.govuk-table__row.sos-portal-row--sel { background-color: var(--sos-bg-light); box-shadow: inset 5px 0 0 var(--sos-primary); }
+.sos-portal-row .govuk-link { font-weight: 700; white-space: nowrap; }
+.sos-portal-late { color: var(--sos-error); font-weight: 700; }
+.sos-portal-late__ico { font-size: 18px; vertical-align: -3px; margin-left: 2px; }
+.sos-portal-table--compact { font-size: 1rem; margin-bottom: 0; }
+.sos-portal-table--compact .govuk-table__header, .sos-portal-table--compact .govuk-table__cell { padding: 8px 8px 8px 0; }
+.sos-portal-off .govuk-table__cell { color: var(--sos-muted); }
+
+/* detail */
+.sos-portal-detail { padding: 24px; border: 1px solid var(--sos-border); border-radius: 4px; background: #fff; }
+.sos-portal-facts { display: grid; grid-template-columns: 150px 1fr; gap: 8px 16px; margin: 0 0 16px; font-size: 1.1875rem; }
+.sos-portal-facts dt { font-weight: 700; }
+.sos-portal-facts dd { margin: 0; }
+.sos-portal-law { margin: 0 0 32px; padding: 12px 16px; border-left: 5px solid var(--sos-primary-dark); background: #f8f8f8; }
+.sos-portal-err { color: var(--sos-error); font-weight: 700; }
+
+/* referenčné údaje z registrov */
+.sos-portal-reg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-bottom: 16px; }
+.sos-portal-reg__card { padding: 16px; border: 1px solid var(--sos-border); border-radius: 4px; background: #fff; }
+.sos-portal-reg__card--wide { grid-column: 1 / -1; }
+.sos-portal-reg__card > .govuk-body-s { margin-bottom: 8px; }
+.sos-portal-reg__list { margin: 12px 0 0; font-size: 1rem; }
+.sos-portal-xml { margin: 0 0 16px; padding: 12px; overflow-x: auto; max-height: 300px; background: #0b0c0c; color: #e8e8e8; font-size: .8rem; border-radius: 4px; }
+
+@media (max-width: 64em) {
+  .sos-portal-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 40em) {
+  .sos-portal-steps, .sos-portal-reg { grid-template-columns: 1fr; }
+  .sos-portal-facts { grid-template-columns: 1fr; gap: 0; }
+  .sos-portal-facts dd { margin-bottom: 8px; }
+  .sos-portal-detail { padding: 16px; }
+  .sos-portal-user__text { display: none; }
+}
+
+/* ID-SK 3 tabuľky: bunky sú flex – viacriadkový obsah v jednom bloku */
+.sos-portal-sub { display: block; margin-top: 2px; color: var(--sos-muted); font-size: .9rem; line-height: 1.3; }
+.sos-portal-table .govuk-table__cell > div { min-width: 0; }
+.sos-portal-table .sos-status { white-space: nowrap; }
+.sos-logo-text img { width: auto; max-width: 100%; }
+
+/* mobil: menu tlačidlo, kompaktná hlavička, tabuľky bez hlavičky (ID-SK riadky sa skladajú pod seba) */
+.sos-portal-menu-btn { display: none; }
+@media (max-width: 45.6em) {
+  .govuk-header__btns-search { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }
+  .sos-portal-menu-btn { display: inline-flex; align-items: center; gap: 4px; width: auto; margin: 0; padding: 6px 8px; font-weight: 700; text-decoration: none; color: var(--sos-primary-dark); }
+  .govuk-header__navigation { display: none; }
+  .govuk-header__navigation.sos-portal-nav--open { display: block; }
+  .sos-logo-text img { height: 32px; max-width: none; }
+  .govuk-predheader { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .sos-portal-table .govuk-table__head { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .sos-portal-stat { padding: 12px 14px; }
+  .sos-portal-stat__n { font-size: 2rem; }
+}
+.sos-portal-mlabel { display: none; }
+@media (max-width: 45.6em) { .sos-portal-mlabel { display: inline; font-weight: 700; } }

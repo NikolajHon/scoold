@@ -170,6 +170,9 @@ public class ScooldRequestInterceptor implements HandlerInterceptor {
 		modelAndView.addObject("languageslink", CONF.serverContextPath() + LANGUAGESLINK);
 		modelAndView.addObject("apidocslink", CONF.serverContextPath() + APIDOCSLINK);
 		modelAndView.addObject("onboardinglink", CONF.serverContextPath() + ONBOARDINGLINK);
+		// Platforma SOS: odkaz späť do partnerskej aplikácie (portálu)
+		modelAndView.addObject("sosPortalUrl", CONF.sosPortalUrl());
+		modelAndView.addObject("sosPortalName", CONF.sosPortalName());
 		// Visual customization
 		modelAndView.addObject("navbarFixedClass", CONF.fixedNavEnabled() ? "navbar-fixed" : "none");
 		modelAndView.addObject("showBranding", CONF.scooldBrandingEnabled());

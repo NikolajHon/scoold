@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="40" viewBox="0 0 320 40" role="img" aria-label="Agenda sociálnych služieb">
+  <rect x="0" y="0" width="40" height="40" rx="8" fill="#072c66"/>
+  <path d="M13 8h10l6 6v16a2 2 0 0 1-2 2H13a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2z" fill="#fff"/>
+  <path d="M23 8v6h6" fill="none" stroke="#072c66" stroke-width="1.6"/>
+  <rect x="14.5" y="18" width="11" height="1.8" rx=".9" fill="#072c66"/>
+  <rect x="14.5" y="22" width="11" height="1.8" rx=".9" fill="#072c66"/>
+  <rect x="14.5" y="26" width="7" height="1.8" rx=".9" fill="#072c66"/>
+  <text x="52" y="27" font-family="Source Sans Pro, Arial, sans-serif" font-size="21" font-weight="700" fill="#072c66" textLength="262" lengthAdjust="spacingAndGlyphs">Agenda sociálnych služieb</text>
+</svg>

@@ -46,3 +46,6 @@ scoold-application.conf
 # IDE
 .idea/
 .DS_Store
+
+# Platforma SOS: prílohy z integračného manuálu IS CSRÚ (interný dokument, metadáta s menami autorov) – len lokálne
+csru-mock/manual-prilohy/

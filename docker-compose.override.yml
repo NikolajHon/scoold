@@ -70,6 +70,29 @@ services:
     ports:
       - "8090:8090"   # len pre lokálne testovanie API, v produkcii nepublikovať
 
+  # Platforma SOS: demo portál (Spring Boot + Angular) so SSO s fórom cez Keycloak, pozri portal-demo/README.md
+  portal:
+    image: sos-portal-demo:dev
+    build: ./portal-demo
+    ports:
+      - "8082:8082"
+    environment:
+      - KC_PUBLIC=http://localhost:8081
+      - KC_INTERNAL=http://keycloak:8080
+      - PUBLIC_URL=http://localhost:8082
+      - FORUM_URL=http://localhost:8000
+      - CSRU_URL=http://csru-mock:8091
+    depends_on:
+      - keycloak
+      - csru-mock
+
+  # Platforma SOS: mock služieb IS CSRÚ (Evidencia ŤZP, PPnO, Register sociálnych služieb), pozri csru-mock/README.md
+  csru-mock:
+    image: csru-mock:dev
+    build: ./csru-mock
+    ports:
+      - "8091:8091"   # prehľad a XML odpovede na http://localhost:8091
+
   # Platforma SOS: vyhľadávanie (index), dáta ostávajú v databáze Pary
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:${ES_VERSION:-9.1.0}

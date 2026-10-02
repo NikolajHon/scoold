@@ -9,6 +9,11 @@ scoold.host_url = "http://localhost:8000"
 scoold.env = "development"
 # scoold.app_secret_key = "" (vygeneruje sa automaticky pri prvom štarte)
 scoold.admins = "Mykola.Honcharenko@posam.sk,admin@sos.local"
+scoold.is_default_space_public = true
+# lokálne heslá ponechané pre núdzový prístup správcu, bežne sa prihlasuje cez Keycloak
+scoold.password_auth_enabled = true
+# bez sprievodcu prvotným nastavením (konfigurácia je v tomto súbore)
+scoold.onboarding_enabled = false
 
 #############  CUSTOMIZATION  #############
 
@@ -39,6 +44,8 @@ scoold.security.oauth.provider = "Prihlásiť sa cez Keycloak"
 scoold.security.redirect_uri = "http://localhost:8080"
 # po odhlásení zo Scooldu ukončiť aj reláciu v Keycloaku (inak sa používateľ prihlási znova bez hesla)
 scoold.signout_url = "http://localhost:8081/realms/sos/protocol/openid-connect/logout?client_id=scoold&post_logout_redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Fsignin%3Fcode%3D5%26success%3Dtrue"
+# /signin rovno presmeruje na Keycloak (SSO bez ďalšieho kliknutia); po odhlásení (?code=5) nie
+scoold.redirect_signin_to_idp = true
 
 #############  SLOV-LEX  #############
 
@@ -52,4 +59,10 @@ scoold.keycloak.realm = "sos"
 scoold.keycloak.admin_group = "sos-admin"
 scoold.keycloak.mod_group = "sos-moderator"
 scoold.keycloak.role_sync_interval_sec = 300
+# jednotné odhlásenie (back-channel logout): issuer tokenov Keycloaku
+scoold.keycloak.issuer = "http://localhost:8081/realms/sos"
 # client_id / client_secret sa predvolene berú z oa2_app_id / oa2_secret
+
+# Platforma SOS: odkaz "späť" do partnerskej aplikácie v hlavičke fóra
+scoold.sos_portal_url = "http://localhost:8082"
+scoold.sos_portal_name = "Agenda sociálnych služieb"

@@ -3417,6 +3417,15 @@ public class ScooldConfig extends Config {
 		return getConfigInt("keycloak.role_sync_interval_sec", 300);
 	}
 
+	@Documented(position = 2893,
+			identifier = "keycloak.issuer",
+			category = "Miscellaneous",
+			description = "Platforma SOS: issuer of Keycloak tokens (e.g. `http://localhost:8081/realms/sos`), checked "
+					+ "in back-channel logout tokens. Derived from `security.oauth.authz_url` when blank.")
+	public String keycloakIssuer() {
+		return getConfigParam("keycloak.issuer", "");
+	}
+
 	@Documented(position = 2881,
 			identifier = "security.hosturl_aliases",
 			category = "Miscellaneous",
@@ -3436,6 +3445,25 @@ public class ScooldConfig extends Config {
 			description = "Enable/disable the redirection of users from the signin page, directly to the IDP login page.")
 	public boolean redirectSigninToIdp() {
 		return getConfigBoolean("redirect_signin_to_idp", false);
+	}
+
+	@Documented(position = 2891,
+			identifier = "sos_portal_url",
+			category = "Miscellaneous",
+			description = "Platforma SOS: public URL of the partner application (e.g. `http://localhost:8082`). "
+					+ "When set, the header shows a link back to it. The application may pass `sos_back=<URL>` "
+					+ "(must start with this URL) to return the user to the exact page they came from.")
+	public String sosPortalUrl() {
+		return Strings.CS.removeEnd(getConfigParam("sos_portal_url", ""), "/");
+	}
+
+	@Documented(position = 2892,
+			identifier = "sos_portal_name",
+			value = "Agenda sociálnych služieb",
+			category = "Miscellaneous",
+			description = "Platforma SOS: name of the partner application shown in the \"back\" link in the header.")
+	public String sosPortalName() {
+		return getConfigParam("sos_portal_name", "Agenda sociálnych služieb");
 	}
 
 	@Documented(position = 2900,

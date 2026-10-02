@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns="http://data.gov.sk/ppno_out/v1" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://data.gov.sk/ppno_out/v1" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:simpleType name="CodeTableValueType">
+		<xs:annotation>
+			<xs:documentation>Kód číselníkovej položky</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="32"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="ApplicationType">
+		<xs:annotation>
+			<xs:documentation>Identifikácia a údaje žiadosti</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="monthFrom" type="xs:gYearMonth">
+				<xs:annotation>
+					<xs:documentation>Začiatok platnosti žiadosti</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="monthTo" type="xs:gYearMonth" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Koniec platnosti žiadosti</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="id" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Interný identifikátor žiadosti</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="office" type="CodeTableValueType">
+				<xs:annotation>
+					<xs:documentation>Kód Úradu práce, sociálnych vecí a rodiny, na ktorý bola/je žiadosť pridelená (rezortný číselník UradPSVaR)</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="district" type="CodeTableValueType">
+				<xs:annotation>
+					<xs:documentation>Kód okresu spadajúceho pod ÚPSVaR, na ktorý bola/je žiadosť pridelená (základný číselník CL000024)</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="dateSubmitted" type="xs:date">
+				<xs:annotation>
+					<xs:documentation>Dátum podania žiadosti</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="nursedPerson" type="NursedPersonType" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Opatrované osoby v období platnosti žiadosti</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="period" type="BenefitPeriodType" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Časovo neprekrývajúce sa obdobia s informáciou o poskytovaní dávky/príspevku</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="BenefitPeriodType">
+		<xs:annotation>
+			<xs:documentation>Obdobie súvisiace s poskytovaním dávky/príspevku osobe</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="monthFrom" type="xs:gYearMonth"/>
+			<xs:element name="monthTo" type="xs:gYearMonth" minOccurs="0"/>
+			<xs:element name="state" type="CodeTableValueType">
+				<xs:annotation>
+					<xs:documentation>Kód číselníkovej položky z rezortného číselníka StavPoskytovaniaSocDavky.
+					Podľa hodnoty tohto elementu je možné finálne určiť, či osobe bola alebo nebola poskytnutá v danom období dávka/príspevok</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="NursedPersonType">
+		<xs:sequence>
+			<xs:element name="person" type="PhysicalPersonType"/>
+			<xs:element name="dateFrom" type="xs:date"/>
+			<xs:element name="dateTo" type="xs:date" minOccurs="0"/>
+			<xs:element name="role" type="NursedPersonRole"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:simpleType name="NursedPersonRole">
+		<xs:annotation>
+			<xs:documentation>Rola opatrovanej osoby. Dieťaťom sa označuje nezaopatrené dieťa podľa zákona o prídavku na dieťa</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="adult"/>
+			<xs:enumeration value="child"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="PhysicalPersonType">
+		<xs:sequence>
+			<xs:element name="givenName" type="xs:string"/>
+			<xs:element name="familyName" type="xs:string"/>
+			<xs:element name="dateOfBirth" type="xs:date"/>
+			<xs:element name="identifier" type="IdentifierType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="IdentifierType">
+		<xs:sequence>
+			<xs:element name="identifierType" type="CodeTableValueType"/>
+			<xs:element name="value" type="xs:string"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="PersonApplicationsType">
+		<xs:sequence>
+			<xs:element name="physicalPerson" type="PhysicalPersonType">
+				<xs:annotation>
+					<xs:documentation>Identifikačné údaje žiadateľa</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="application" type="ApplicationType" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Údaje o žiadosti/žiadostiach, z ktorých bola/je dávka/príspevok poskytovaná</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="PersonsType">
+		<xs:sequence>
+			<xs:element name="person" type="PersonApplicationsType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="dataFrom" type="xs:gYearMonth" use="required">
+			<xs:annotation>
+				<xs:documentation>Obdobie, od ktorého sú údaje o dávke/príspevku poskytované</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="dateChanged" type="xs:dateTime" use="required">
+			<xs:annotation>
+				<xs:documentation>Časová značka platnosti údajov</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:element name="persons" type="PersonsType"/>
+</xs:schema>

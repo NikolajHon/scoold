@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- edited with XMLSpy v2020 sp1 (x64) (http://www.altova.com) by stefan.stoder@mim.sk (MIM, s.r.o.) -->
+<xs:schema xmlns="http://csru/gov/sk/MPSVaR_RSS_Potvrdenie/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://csru/gov/sk/MPSVaR_RSS_Potvrdenie/1.0" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="rss" type="RssCType">
+		<xs:annotation>
+			<xs:documentation>Register sociálnych služieb</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:complexType name="RssCType">
+		<xs:sequence>
+			<xs:element name="provider" type="ProviderCType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Poskytovateľ</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="dateChanged" type="xs:dateTime" use="required">
+			<xs:annotation>
+				<xs:documentation>Časová značka platnosti údajov v dávke</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="ProviderCType">
+		<xs:sequence>
+			<xs:choice>
+				<xs:sequence>
+					<xs:element name="name" type="xs:string">
+						<xs:annotation>
+							<xs:documentation>Názov PO</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+				<xs:sequence>
+					<xs:element name="familyName" type="xs:string">
+						<xs:annotation>
+							<xs:documentation>
+								Priezvisko osoby
+							</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="givenName" type="xs:string">
+						<xs:annotation>
+							<xs:documentation>Meno osoby</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+			</xs:choice>
+			<xs:element name="identifier" type="IdentifierCType" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>
+						Zoznam identifikátorov
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="providerType" type="CodeTableValueCType">
+				<xs:annotation>
+					<xs:documentation>Typ poskytovateľa služby - kód číselníkovej položky (TypPoskytovatela)</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="address" type="AddressCType">
+				<xs:annotation>
+					<xs:documentation>Adresa poskytovateľa (PO-adresa sídla, FO-adresa trvalého pobytu)</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="statutoryBody" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Štatutárny zástupca</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="providedService" type="SocialServiceCType" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>
+						Zoznam poskytovaných sociálnych služieb
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="IdentifierCType">
+		<xs:sequence>
+			<xs:element name="identifierType" type="CodeTableValueSType">
+				<xs:annotation>
+					<xs:documentation>Typ identifikátora - kód</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="value" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Hodnota zodpovedajúca typu identifikátora</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="SocialServiceCType">
+		<xs:annotation>
+			<xs:documentation/>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="identifier" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>ID služby</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="type" type="CodeTableValueCType">
+				<xs:annotation>
+					<xs:documentation>Druh sociálnej služby - kód číselníkovej položky (DruhSocialnejSluzby)			</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="form" type="CodeTableValueCType">
+				<xs:annotation>
+					<xs:documentation>Forma sociálnej služby - kód číselníkovej položky (FormaSocialnejSluzby)</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="address" type="AddressCType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Miesto poskytovania sociálnej služby			</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="territorialScope" type="TerritorialScopeCType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Územná pôsobnosť určená jedným z hierarchicky usporiadaných číselníkov; používa sa kód položky jedného z číselníkov:
+					- krajina OSN (CL000086)
+					- kraj SK (CL000023)
+					- okres SK (CL000024)
+					- obec SK (CL000025)
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="providedFrom" type="xs:date" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Dátum poskytovania služby od. Ak nevyplnené,tak má registrovanú službu, ale neposkytuje ju			</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="providedTo" type="xs:date" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Dátum poskytovania službydo</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="targetGroup" type="CodeTableValueCType" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Cieľová skupina - kód číselníkovej položky CielovaSkupina</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="currentCapacity" type="xs:integer" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Aktuálna kapacita</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="responsiblePerson" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Zodpovedná osoba</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="email" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Email</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:pattern value="\w+([\.\-_]?\w+)*@\w+([\.\-]?\w+)*(\.\w{2,4})+"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="phone" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Telefón</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:pattern value="\+(9[976]\d|8[987530]\d|6[987]\d|5[90]\d|42\d|3[875]\d|2[98654321]\d|9[8543210]|8[6421]|6[6543210]|5[87654321]|4[987654310]|3[9643210]|2[70]|7|1)\d{1,14}"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="dateOfRegistration" type="xs:date">
+				<xs:annotation>
+					<xs:documentation>Dátum zápisu</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="dateOfErasure" type="xs:date" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Dátum výmazu</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="erasureReason" type="CodeTableValueCType" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Zoznam právnych dôvodov výmazu (číselníkové položky DovodVymazu)</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="registrar" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Registrátor</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="AddressCType">
+		<xs:annotation>
+			<xs:documentation/>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="street" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Ulica miesta poskytovania služby</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="streetNumber" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Číslo miesta poskytovania služby</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="postCode" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>PSČ miesta poskytovania služby</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="lau2" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Obec miesta poskytovania služby</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="fullTextAddress" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Adresa miesta poskytovania v textovej podobe</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="TerritorialScopeCType">
+		<xs:choice>
+			<xs:element name="unCountry" type="CodeTableValueSType">
+				<xs:annotation>
+					<xs:documentation>Krajina OSN - kód číselníkovej položky CL000086</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="nuts3" type="CodeTableValueSType">
+				<xs:annotation>
+					<xs:documentation>Kraj - kód číselníkovej položky CL000023</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="lau1" type="CodeTableValueSType">
+				<xs:annotation>
+					<xs:documentation>Okres - kód číselníkovej položky CL000024</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="lau2" type="CodeTableValueSType">
+				<xs:annotation>
+					<xs:documentation>Obec - kód číselníkovej položky CL000025</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:choice>
+	</xs:complexType>
+	<xs:complexType name="CodeTableValueCType">
+		<xs:sequence>
+			<xs:element name="itemCode" type="CodeTableValueSType">
+				<xs:annotation>
+					<xs:documentation>Kód číselníkovej položky </xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="itemDescription" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Popis číselníkovej položky</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:simpleType name="CodeTableValueSType">
+		<xs:annotation>
+			<xs:documentation>Kód číselníkovej položky</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="32"/>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>
