@@ -3,8 +3,36 @@
 services:
   para:
     platform: linux/amd64
+    # Para + plugin para-search-elasticsearch (1.43.1 pre Para 1.55.x = latest_stable, Elasticsearch 9.x), pozri ELASTICSEARCH.md.
+    # Para načítava pluginy z para.plugin_folder (predvolene lib/); /para/lib je volume, preto /para/plugins.
+    image: para-es:dev
+    build:
+      # Plugin 1.43.x má chybu: META-INF/services odkazuje na triedu ProxySubResourceHandler,
+      # ktorá v jar-e už nie je -> Para spadne pri štarte. Riadok z jar-u odstránime.
+      dockerfile_inline: |
+        FROM eclipse-temurin:21-jdk AS plugin
+        ADD https://repo1.maven.org/maven2/com/erudika/para-search-elasticsearch/1.43.1/para-search-elasticsearch-1.43.1-shaded.jar /tmp/es.jar
+        RUN cd /tmp && F=META-INF/services/com.erudika.para.core.rest.CustomResourceHandler \
+            && jar xf es.jar $$F && sed -i '/ProxySubResourceHandler/d' $$F && jar uf es.jar $$F
+        FROM erudikaltd/para:latest_stable
+        COPY --from=plugin /tmp/es.jar /para/plugins/para-search-elasticsearch.jar
+    environment:
+      - >-
+        JAVA_OPTS=-Dconfig.file=/para/application.conf
+        -Dloader.path=/para/lib
+        -Dpara.plugin_folder=/para/plugins/
+        -Dpara.search=ElasticSearch
+        -Dpara.es.flavor=elasticsearch
+        -Dpara.es.restclient_scheme=http
+        -Dpara.es.restclient_host=elasticsearch
+        -Dpara.es.restclient_port=9200
+        -Dpara.es.shards=1
+        -Dpara.es.replicas=0
     depends_on:
-      - keycloak
+      keycloak:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
   scoold:
     # vlastný build z nášho forku (so slovenčinou), natívne arm64
     image: scoold-sos:dev
@@ -41,3 +69,25 @@ services:
     build: ./slovlex-service
     ports:
       - "8090:8090"   # len pre lokálne testovanie API, v produkcii nepublikovať
+
+  # Platforma SOS: vyhľadávanie (index), dáta ostávajú v databáze Pary
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ES_VERSION:-9.1.0}
+    environment:
+      - discovery.type=single-node
+      # len lokálny vývoj: bez hesla a HTTPS (v produkcii zapnúť security)
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"   # len na lokálne testovanie, v produkcii nepublikovať
+    volumes:
+      - esData:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs 'http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s' || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+    restart: always
+
+volumes:
+  esData:
