@@ -2,20 +2,48 @@
 <h1 class="govuk-heading-xl">$!lang.get('idsk.search.placeholder')</h1>
 <p class="govuk-body-l">$!lang.get('idsk.search.lead')</p>
 
-<form class="sos-search-big" role="search" action="$searchlink" method="get">
-	<label for="sos-search-page" class="govuk-visually-hidden">$!lang.get('idsk.search.placeholder')</label>
-	<input id="sos-search-page" class="govuk-input" type="search" name="q" value="$!searchQuery" placeholder="$!lang.get('idsk.search.placeholder')" required>
-	<button type="submit" class="govuk-button govuk-button__basic">$!lang.get('search.search')</button>
+## Platforma SOS: filter platnosti obsahu KB (predvolene všetky verzie s označením platnosti)
+#set($sosPlatnost = "")#if($request.getParameter("platnost"))#set($sosPlatnost = $request.getParameter("platnost"))#end
+#set($sosKDatumu = "")#if($request.getParameter("k"))#set($sosKDatumu = $request.getParameter("k"))#end
+#set($sosVq = "")
+#if($sosPlatnost == "platne")#set($sosVq = "platnost=platne")#elseif($sosPlatnost == "k_datumu" && $sosKDatumu != "")#set($sosVq = "platnost=k_datumu&k=$utils.urlEncode($sosKDatumu)")#end
+<form class="sos-search-form" role="search" action="$searchlink" method="get">
+	<div class="sos-search-big">
+		<label for="sos-search-page" class="govuk-visually-hidden">$!lang.get('idsk.search.placeholder')</label>
+		<input id="sos-search-page" class="govuk-input" type="search" name="q" value="$!searchQuery" placeholder="$!lang.get('idsk.search.placeholder')" required>
+		<button type="submit" class="govuk-button govuk-button__basic">$!lang.get('search.search')</button>
+	</div>
+	<fieldset class="govuk-fieldset sos-validity-filter">
+		<legend class="govuk-fieldset__legend govuk-fieldset__legend--s">$!lang.get('idsk.validity.filter')</legend>
+		<div class="govuk-radios govuk-radios--small govuk-radios--inline">
+			<div class="govuk-radios__item">
+				<input class="govuk-radios__input" id="sos-vf-all" name="platnost" type="radio" value="" #if($sosPlatnost != "platne" && $sosPlatnost != "k_datumu")checked#end>
+				<label class="govuk-label govuk-radios__label" for="sos-vf-all">$!lang.get('idsk.validity.filter.all')</label>
+			</div>
+			<div class="govuk-radios__item">
+				<input class="govuk-radios__input" id="sos-vf-now" name="platnost" type="radio" value="platne" #if($sosPlatnost == "platne")checked#end>
+				<label class="govuk-label govuk-radios__label" for="sos-vf-now">$!lang.get('idsk.validity.filter.now')</label>
+			</div>
+			<div class="govuk-radios__item">
+				<input class="govuk-radios__input" id="sos-vf-date" name="platnost" type="radio" value="k_datumu" #if($sosPlatnost == "k_datumu")checked#end>
+				<label class="govuk-label govuk-radios__label" for="sos-vf-date">$!lang.get('idsk.validity.filter.date')</label>
+			</div>
+			<div class="govuk-form-group sos-validity-filter__date">
+				<label class="govuk-visually-hidden" for="sos-vf-k">$!lang.get('idsk.validity.filter.date')</label>
+				<input class="govuk-input" type="date" id="sos-vf-k" name="k" value="$!sosKDatumu">
+			</div>
+		</div>
+	</fieldset>
 </form>
 
 #if($searchQuery && !$searchQuery.isEmpty())
 	#set($_encQ = $utils.urlEncode($searchQuery))
 	<nav aria-label="$!lang.get('idsk.sort')">
 		<ul class="sos-tabs">
-			<li><a href="$searchlink?q=$!_encQ" #if(!$showParam)aria-current="page"#end>$!lang.get('showall')</a></li>
-			<li><a href="$searchlink/questions/$!searchQuery" #if($showParam == "questions")aria-current="page"#end>$!lang.get('questions.title')</a></li>
-			<li><a href="$searchlink/answers/$!searchQuery" #if($showParam == "answers")aria-current="page"#end>$!lang.get('answers.title')</a></li>
-			<li><a href="$searchlink/comments/$!searchQuery" #if($showParam == "comments")aria-current="page"#end>$!lang.get('comments.title')</a></li>
+			<li><a href="$searchlink?q=$!_encQ#if($sosVq != "")&$sosVq#end" #if(!$showParam)aria-current="page"#end>$!lang.get('showall')</a></li>
+			<li><a href="$searchlink/questions/$!searchQuery#if($sosVq != "")?$sosVq#end" #if($showParam == "questions")aria-current="page"#end>$!lang.get('questions.title')</a></li>
+			<li><a href="$searchlink/answers/$!searchQuery#if($sosVq != "")?$sosVq#end" #if($showParam == "answers")aria-current="page"#end>$!lang.get('answers.title')</a></li>
+			<li><a href="$searchlink/comments/$!searchQuery#if($sosVq != "")?$sosVq#end" #if($showParam == "comments")aria-current="page"#end>$!lang.get('comments.title')</a></li>
 		</ul>
 	</nav>
 #end
@@ -33,6 +61,7 @@
 					<div class="idsk-card__description">$!utils.abbreviate($plainTxt, 220)</div>
 					<div class="sos-card-meta">
 						#if($answer.type == "unapprovedreply")<span class="sos-status sos-status--warning">$!lang.get('posts.unapproved')</span>#end
+						#if($answer.hasValidity())#idskvalidity($answer)#end
 						<span>#formatdate($answer.timestamp "")</span>
 						<span>#idskperson($answer.author)</span>
 					</div>
@@ -63,9 +92,13 @@
 		#elseif ($showParam == "people")$!lang.get("people.title")
 		#elseif ($showParam == "comments")$!lang.get("comments.title")
 		#end
-		($!itemcount.count)
+		#set($_count = $itemcount.count)
+		#if($validityFilterDay && $validityFilterDay != "")
+			#if($showParam == "questions")#set($_count = $questionslist.size())#elseif($showParam == "answers")#set($_count = $answerslist.size())#end
+		#end
+		($!_count)
 	</h2>
-	#if ($itemcount.count == 0)
+	#if ($_count == 0)
 		<div class="sos-empty"><p class="govuk-body-l sos-mb-0">$!lang.get("search.notfound")</p></div>
 	#elseif ($showParam == "questions")
 		#idskquestionslist($questionslist)
@@ -91,19 +124,19 @@
 	#if (!$questionslist.isEmpty())
 		<h2 class="govuk-heading-l">$!lang.get("questions.title")</h2>
 		#idskquestionslist($questionslist)
-		<p class="govuk-body"><a href="$searchlink/questions/$!searchQuery" class="govuk-link">$!lang.get("more")</a></p>
+		<p class="govuk-body"><a href="$searchlink/questions/$!searchQuery#if($sosVq != "")?$sosVq#end" class="govuk-link">$!lang.get("more")</a></p>
 	#end
 
 	#if (!$answerslist.isEmpty())
 		<h2 class="govuk-heading-l">$!lang.get("answers.title")</h2>
 		#idsksearchanswers($answerslist)
-		<p class="govuk-body"><a href="$searchlink/answers/$!searchQuery" class="govuk-link">$!lang.get("more")</a></p>
+		<p class="govuk-body"><a href="$searchlink/answers/$!searchQuery#if($sosVq != "")?$sosVq#end" class="govuk-link">$!lang.get("more")</a></p>
 	#end
 
 	#if (!$commentslist.isEmpty())
 		<h2 class="govuk-heading-l">$!lang.get("comments.title")</h2>
 		#idsksearchcomments($commentslist)
-		<p class="govuk-body"><a href="$searchlink/comments/$!searchQuery" class="govuk-link">$!lang.get("more")</a></p>
+		<p class="govuk-body"><a href="$searchlink/comments/$!searchQuery#if($sosVq != "")?$sosVq#end" class="govuk-link">$!lang.get("more")</a></p>
 	#end
 
 	#if (!$userlist.isEmpty())

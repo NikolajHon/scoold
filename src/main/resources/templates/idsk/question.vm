@@ -32,6 +32,59 @@
 		</div>
 		#end
 
+		## Platforma SOS: platnosť a verzie otázky (pozri VERZIE.md)
+		#if(!$showPost.isReply())
+			#set($sosNextV = "")#if($showPost.nextVersionId)#set($sosNextV = $scooldUtils.sosVersion($showPost.nextVersionId))#end
+			#set($sosPrevV = "")#if($showPost.previousVersionId)#set($sosPrevV = $scooldUtils.sosVersion($showPost.previousVersionId))#end
+			#set($sosQvs = $showPost.validityState())
+			#if($request.getParameter("newVersion"))
+			<div class="govuk-notification-banner govuk-notification-banner--success" role="alert" aria-labelledby="sos-nv-title">
+				<div class="govuk-notification-banner__header"><h2 class="govuk-notification-banner__title" id="sos-nv-title">$!lang.get('idsk.version.created.title')</h2></div>
+				<div class="govuk-notification-banner__content"><p class="govuk-body sos-mb-0">$!lang.get('idsk.version.created.text')</p></div>
+			</div>
+			#end
+			#if($request.getParameter("validityError") || $request.getParameter("versionError"))
+			<div class="govuk-notification-banner govuk-notification-banner--error" role="alert" aria-labelledby="sos-verr-title">
+				<div class="govuk-notification-banner__header"><h2 class="govuk-notification-banner__title" id="sos-verr-title">$!lang.get('idsk.validity.error.title')</h2></div>
+				<div class="govuk-notification-banner__content"><p class="govuk-body sos-mb-0">
+					#if($request.getParameter("versionError") == "exists")$!lang.get('idsk.version.error.exists')
+					#elseif($request.getParameter("versionError"))$!lang.get('idsk.version.error.date')
+					#else$!lang.get('idsk.validity.error.text')#end
+				</p></div>
+			</div>
+			#end
+			#if($sosQvs == "expired")
+			<div class="govuk-notification-banner govuk-notification-banner--warning" role="region" aria-labelledby="sos-exp-title">
+				<div class="govuk-notification-banner__header"><h2 class="govuk-notification-banner__title" id="sos-exp-title">$!lang.get('idsk.version.expired.title')</h2></div>
+				<div class="govuk-notification-banner__content">
+					<p class="govuk-notification-banner__heading">$!lang.get('idsk.version.expired.text') $!showPost.validToText().</p>
+					#if($sosNextV.id)
+					<p class="govuk-body sos-mb-0">$!lang.get('idsk.version.current'):
+						<a class="govuk-notification-banner__link" href="$!sosNextV.getPostLinkForRedirect()">$!sosNextV.title</a>#if($sosNextV.validFrom) ($!lang.get('idsk.validity.from') $!sosNextV.validFromText())#end</p>
+					#end
+				</div>
+			</div>
+			#elseif($sosQvs == "future")
+			<div class="govuk-notification-banner" role="region" aria-labelledby="sos-fut-title">
+				<div class="govuk-notification-banner__header"><h2 class="govuk-notification-banner__title" id="sos-fut-title">$!lang.get('idsk.version.future.title')</h2></div>
+				<div class="govuk-notification-banner__content">
+					<p class="govuk-notification-banner__heading">$!lang.get('idsk.version.future.text') $!showPost.validFromText().</p>
+					#if($sosPrevV.id)
+					<p class="govuk-body sos-mb-0">$!lang.get('idsk.version.untilthen'):
+						<a class="govuk-notification-banner__link" href="$!sosPrevV.getPostLinkForRedirect()">$!sosPrevV.title</a></p>
+					#end
+				</div>
+			</div>
+			#elseif($sosNextV.id)
+			<p class="govuk-body sos-version-note">$!lang.get('idsk.version.upcoming') $!sosNextV.validFromText():
+				<a class="govuk-link" href="$!sosNextV.getPostLinkForRedirect()">$!sosNextV.title</a></p>
+			#end
+			#if($sosPrevV.id && $sosQvs != "future")
+			<p class="govuk-body-s sos-muted sos-version-note">$!lang.get('idsk.version.previous'):
+				<a class="govuk-link" href="$!sosPrevV.getPostLinkForRedirect()">$!sosPrevV.title</a>#if($sosPrevV.validTo) ($!lang.get('idsk.validity.until') $!sosPrevV.validToText())#end</p>
+			#end
+		#end
+
 		#if (!$showPost.isReply())
 			<div class="answers-head">
 				<h2 class="govuk-heading-l">$!lang.get("answers.title") ($!itemcount.count)</h2>

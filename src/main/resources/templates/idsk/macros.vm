@@ -321,8 +321,21 @@
 	#if($post.deprecated)
 		<span class="sos-status sos-status--warning">$!lang.get('deprecated')</span>
 	#end
+	#if($post.hasValidity())#idskvalidity($post)#end
 	#if($post.isClosed())
 		<span class="sos-status sos-status--neutral">$!lang.get('idsk.closed')</span>
+	#end
+#end
+
+## Platforma SOS: štítok platnosti obsahu KB (platné od–do / neplatné / platí až od)
+#macro(idskvalidity $vpost)
+	#set($_vs = $vpost.validityState())
+	#if($_vs == "expired")
+		<span class="sos-status sos-status--neutral sos-validity">$!lang.get('idsk.validity.expired') $!vpost.validToText()</span>
+	#elseif($_vs == "future")
+		<span class="sos-status sos-status--warning sos-validity">$!lang.get('idsk.validity.future') $!vpost.validFromText()</span>
+	#elseif($_vs == "valid")
+		<span class="sos-status sos-status--success sos-validity">$!lang.get('idsk.validity.valid')#if($vpost.validFrom) $!lang.get('idsk.validity.from') $!vpost.validFromText()#end#if($vpost.validTo) $!lang.get('idsk.validity.to') $!vpost.validToText()#end</span>
 	#end
 #end
 
@@ -462,6 +475,7 @@
 				#end
 			#end
 			#if($showpost.type == "unapprovedreply")<span class="sos-status sos-status--warning">$!lang.get('posts.unapproved')</span>#end
+			#if($showpost.isReply() && $showpost.hasValidity())<span>#idskvalidity($showpost)</span>#end
 		</div>
 
 		<div class="sos-post-actions" aria-label="$!lang.get('idsk.actions')">
@@ -514,6 +528,48 @@
 				#end
 			</div>
 		</div>
+
+		## Platforma SOS: platnosť od–do a nová verzia (len moderátori a správcovia), pozri VERZIE.md
+		#if($authenticated && $scooldUtils.isMod($authUser) && ($showpost.isQuestion() || $showpost.isReply()))
+		<details class="govuk-details sos-validity-details">
+			<summary class="govuk-details__summary">
+				<span class="govuk-details__summary-text">#if($showpost.isQuestion())$!lang.get('idsk.validity.manage.question')#else$!lang.get('idsk.validity.manage.answer')#end</span>
+			</summary>
+			<div class="govuk-details__text">
+				<form method="post" action="$questionlink/$!parentpost.id/validity" class="sos-validity-form">
+					<input type="hidden" name="postid" value="$!showpost.id">
+					<fieldset class="govuk-fieldset">
+						<legend class="govuk-fieldset__legend govuk-fieldset__legend--s">$!lang.get('idsk.validity.title')</legend>
+						<p class="govuk-body-s sos-muted">$!lang.get('idsk.validity.hint')</p>
+						<div class="sos-validity-fields">
+							<div class="govuk-form-group">
+								<label class="govuk-label" for="sos-vf-$!showpost.id">$!lang.get('idsk.validity.label.from')</label>
+								<input class="govuk-input" type="date" id="sos-vf-$!showpost.id" name="validFrom" value="$!showpost.validFrom">
+							</div>
+							<div class="govuk-form-group">
+								<label class="govuk-label" for="sos-vt-$!showpost.id">$!lang.get('idsk.validity.label.to')</label>
+								<input class="govuk-input" type="date" id="sos-vt-$!showpost.id" name="validTo" value="$!showpost.validTo">
+							</div>
+						</div>
+					</fieldset>
+					<button class="govuk-button govuk-button__basic" type="submit">$!lang.get('save')</button>
+				</form>
+				#if($showpost.isQuestion() && !$showpost.nextVersionId)
+				<form method="post" action="$questionlink/$!showpost.id/new-version" class="sos-version-form">
+					<fieldset class="govuk-fieldset">
+						<legend class="govuk-fieldset__legend govuk-fieldset__legend--s">$!lang.get('idsk.version.new')</legend>
+						<p class="govuk-body-s sos-muted">$!lang.get('idsk.version.new.hint')</p>
+						<div class="govuk-form-group">
+							<label class="govuk-label" for="sos-nv-$!showpost.id">$!lang.get('idsk.version.new.from')</label>
+							<input class="govuk-input" type="date" id="sos-nv-$!showpost.id" name="validFrom" required>
+						</div>
+					</fieldset>
+					<button class="govuk-button govuk-button--sec" type="submit">$!lang.get('idsk.version.new.submit')</button>
+				</form>
+				#end
+			</div>
+		</details>
+		#end
 	</div>
 
 	#if($scooldUtils.canEdit($showpost, $authUser))

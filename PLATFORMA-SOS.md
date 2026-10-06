@@ -57,6 +57,7 @@ docker compose down -v --remove-orphans && : > para-application.conf && docker c
 | [SLOVLEX.md](SLOVLEX.md) | karty právnych predpisov |
 | [portal-demo/README.md](portal-demo/README.md) | demo aplikácia, SSO, jednotné odhlásenie (back-channel logout) |
 | [csru-mock/README.md](csru-mock/README.md) | mock IS CSRÚ podľa integračného manuálu |
+| [VERZIE.md](VERZIE.md) | platnosť obsahu KB od–do a verzie otázok |
 
 ## Časté problémy
 

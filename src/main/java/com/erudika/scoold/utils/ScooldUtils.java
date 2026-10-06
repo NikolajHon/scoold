@@ -1480,6 +1480,24 @@ public final class ScooldUtils {
 				(User.Groups.ADMINS.toString().equals(authUser.getGroups()) && authUser.getEditorRoleEnabled());
 	}
 
+	/**
+	 * Platforma SOS: načíta prepojenú verziu otázky (pre šablóny – odkazy na predchádzajúcu/novšiu verziu).
+	 * @param id id otázky
+	 * @return otázka alebo null
+	 */
+	public Post sosVersion(String id) {
+		if (StringUtils.isBlank(id)) {
+			return null;
+		}
+		try {
+			ParaObject obj = pc.read(id);
+			return obj instanceof Post p ? p : null;
+		} catch (Exception e) {
+			logger.debug("Cannot read version {}: {}", id, e.getMessage());
+			return null;
+		}
+	}
+
 	public boolean isMod(Profile authUser) {
 		if (authUser == null || !authUser.getEditorRoleEnabled()) {
 			return false;

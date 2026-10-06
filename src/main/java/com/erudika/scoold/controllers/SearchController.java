@@ -129,6 +129,13 @@ public class SearchController {
 			}
 			commentslist = pc.findQuery(Utils.type(Comment.class), qs, itemcount);
 		}
+		// Platforma SOS: filter platnosti obsahu KB – predvolene všetky verzie (s označením platnosti)
+		java.time.LocalDate validOn = validityFilterDay(req);
+		if (validOn != null) {
+			questionslist = filterValid(questionslist, validOn);
+			answerslist = filterValid(answerslist, validOn);
+		}
+		model.addAttribute("validityFilterDay", validOn == null ? "" : validOn.toString());
 		ArrayList<Post> list = new ArrayList<Post>();
 		list.addAll(questionslist);
 		list.addAll(answerslist);
@@ -168,6 +175,32 @@ public class SearchController {
 	}
 
 	@ResponseBody
+	/**
+	 * Platforma SOS: deň, ku ktorému sa filtruje platnosť (parameter platnost=platne → dnes,
+	 * platnost=k_datumu&amp;k=yyyy-MM-dd → zadaný deň), inak null (všetky verzie).
+	 * @param req request
+	 * @return deň alebo null
+	 */
+	private static java.time.LocalDate validityFilterDay(HttpServletRequest req) {
+		String mode = StringUtils.trimToEmpty(req.getParameter("platnost"));
+		if ("platne".equals(mode)) {
+			return java.time.LocalDate.now();
+		} else if ("k_datumu".equals(mode)) {
+			return Post.parseDay(req.getParameter("k"));
+		}
+		return null;
+	}
+
+	private static List<Post> filterValid(List<Post> posts, java.time.LocalDate day) {
+		List<Post> out = new ArrayList<>(posts.size());
+		for (Post p : posts) {
+			if (p.validOn(day)) {
+				out.add(p);
+			}
+		}
+		return out;
+	}
+
 	@GetMapping("/opensearch.xml")
 	public ResponseEntity<String> openSearch(HttpServletRequest req) {
 		String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"

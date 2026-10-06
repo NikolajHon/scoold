@@ -735,3 +735,15 @@ a.sos-law { text-decoration-style: dotted; }
 .govuk-header__actionPanel .govuk-button.sos-back-btn:hover,
 .govuk-header__actionPanel .govuk-button.sos-back-btn:focus { background-color: #dce9fd; color: #072c66; }
 .govuk-header__actionPanel .govuk-button.sos-back-btn .material-icons { font-size: 20px; color: inherit; }
+
+/* Platforma SOS: platnosť obsahu KB a verzie otázok */
+.sos-validity { text-transform: none; letter-spacing: 0; }
+.sos-validity-details { margin: 12px 0 0; }
+.sos-validity-details .govuk-details__text form + form { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--sos-border); }
+.sos-validity-fields { display: flex; flex-wrap: wrap; gap: 0 24px; }
+.sos-validity-fields .govuk-input, .sos-version-form .govuk-input, .sos-validity-filter__date .govuk-input { width: auto; max-width: 220px; }
+.sos-version-note { margin-top: 8px; }
+.sos-search-form { margin-bottom: 24px; }
+.sos-search-form .sos-search-big { margin-bottom: 12px; }
+.sos-validity-filter .govuk-radios--inline { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; }
+.sos-validity-filter__date { margin: 0; }

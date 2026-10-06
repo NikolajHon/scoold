@@ -42,8 +42,10 @@ public final class KeycloakRoleSync {
 	private static final Duration TIMEOUT = Duration.ofSeconds(10);
 	private static final long RETRY_AFTER_ERROR_MS = 60_000L;
 	private static final Pattern KC_ID = Pattern.compile("[A-Za-z0-9-]{1,64}");
-	private static final String OAUTH2_PREFIX = "oauth2:";
+	/** Para ukladá OIDC používateľov ako "oa2:<sub>" (staršie verzie "oauth2:<sub>"). */
+	private static final String[] OAUTH2_PREFIXES = {"oa2:", "oauth2:"};
 	private static final Map<String, Entry> CACHE = new ConcurrentHashMap<>();
+	private static final Set<String> SKIPPED = ConcurrentHashMap.newKeySet();
 
 	private static volatile String serviceToken;
 	private static volatile long serviceTokenExpires;
@@ -80,6 +82,10 @@ public final class KeycloakRoleSync {
 		}
 		String kcId = keycloakUserId(u);
 		if (kcId == null) {
+			if (SKIPPED.add(u.getId())) {
+				logger.info("Keycloak role sync skipped for '{}' (id={}): identifier '{}' is not 'oa2:<keycloak id>' "
+						+ "– user did not sign in via Keycloak.", u.getName(), u.getId(), u.getIdentifier());
+			}
 			return null;
 		}
 		long now = System.currentTimeMillis();
@@ -92,7 +98,7 @@ public final class KeycloakRoleSync {
 			String group = toScooldGroup(groups);
 			long interval = Math.max(10, conf().keycloakRoleSyncIntervalSec()) * 1000L;
 			CACHE.put(u.getId(), new Entry(group, now, now + interval));
-			logger.debug("Keycloak groups of '{}': {} -> {}", u.getName(), groups, group);
+			logger.info("Keycloak groups of '{}' (keycloak id {}): {} -> {}", u.getName(), kcId, groups, group);
 			return group;
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
@@ -118,11 +124,16 @@ public final class KeycloakRoleSync {
 
 	static String keycloakUserId(User u) {
 		String identifier = u.getIdentifier();
-		if (identifier == null || !identifier.startsWith(OAUTH2_PREFIX)) {
+		if (identifier == null) {
 			return null;
 		}
-		String id = identifier.substring(OAUTH2_PREFIX.length());
-		return KC_ID.matcher(id).matches() ? id : null;
+		for (String prefix : OAUTH2_PREFIXES) {
+			if (identifier.startsWith(prefix)) {
+				String id = identifier.substring(prefix.length());
+				return KC_ID.matcher(id).matches() ? id : null;
+			}
+		}
+		return null;
 	}
 
 	static String toScooldGroup(List<String> groups) {

@@ -86,6 +86,11 @@ public abstract class Post extends Sysprop {
 	@Stored private Boolean deprecated;
 	@Stored private Long approvalTimestamp;
 	@Stored private Boolean anonymous;
+	// Platforma SOS: platnosť obsahu KB (od–do) a prepojenie verzií otázky, pozri VERZIE.md
+	@Stored private String validFrom;
+	@Stored private String validTo;
+	@Stored private String previousVersionId;
+	@Stored private String nextVersionId;
 
 	private transient Profile author;
 	private transient Profile lastEditor;
@@ -130,6 +135,120 @@ public abstract class Post extends Sysprop {
 
 	public void setDeprecated(Boolean deprecated) {
 		this.deprecated = deprecated;
+	}
+
+	// ---------------------------------------------------------------- Platforma SOS: platnosť a verzie
+
+	/** Platnosť od (ISO dátum yyyy-MM-dd), alebo null. */
+	public String getValidFrom() {
+		return validFrom;
+	}
+
+	public void setValidFrom(String validFrom) {
+		this.validFrom = StringUtils.trimToNull(validFrom);
+	}
+
+	/** Platnosť do vrátane (ISO dátum yyyy-MM-dd), alebo null. */
+	public String getValidTo() {
+		return validTo;
+	}
+
+	public void setValidTo(String validTo) {
+		this.validTo = StringUtils.trimToNull(validTo);
+	}
+
+	/** Id predchádzajúcej verzie otázky (staršia platnosť). */
+	public String getPreviousVersionId() {
+		return previousVersionId;
+	}
+
+	public void setPreviousVersionId(String previousVersionId) {
+		this.previousVersionId = StringUtils.trimToNull(previousVersionId);
+	}
+
+	/** Id nasledujúcej (novšej) verzie otázky. */
+	public String getNextVersionId() {
+		return nextVersionId;
+	}
+
+	public void setNextVersionId(String nextVersionId) {
+		this.nextVersionId = StringUtils.trimToNull(nextVersionId);
+	}
+
+	/*
+	 * Pomocné metódy pre šablóny sú zámerne bez prefixu get/is – Jackson ich tak neserializuje
+	 * a neuložia sa do Pary ako vypočítané hodnoty.
+	 */
+
+	/** @return true ak má príspevok nastavenú platnosť od alebo do */
+	public boolean hasValidity() {
+		return validFrom != null || validTo != null;
+	}
+
+	/**
+	 * Stav platnosti k dnešnému dňu.
+	 * @return "future" (ešte neplatí), "expired" (už neplatí), "valid" (platí), alebo "" (bez obmedzenia)
+	 */
+	public String validityState() {
+		return validityStateOn(java.time.LocalDate.now());
+	}
+
+	/**
+	 * @param day deň, ku ktorému sa platnosť posudzuje
+	 * @return "future", "expired", "valid" alebo "" (bez obmedzenia)
+	 */
+	public String validityStateOn(java.time.LocalDate day) {
+		if (!hasValidity() || day == null) {
+			return "";
+		}
+		java.time.LocalDate from = parseDay(validFrom);
+		java.time.LocalDate to = parseDay(validTo);
+		if (from != null && day.isBefore(from)) {
+			return "future";
+		}
+		if (to != null && day.isAfter(to)) {
+			return "expired";
+		}
+		return "valid";
+	}
+
+	/**
+	 * @param day deň
+	 * @return true ak je príspevok k danému dňu platný (alebo nemá obmedzenie platnosti)
+	 */
+	public boolean validOn(java.time.LocalDate day) {
+		String state = validityStateOn(day);
+		return state.isEmpty() || "valid".equals(state);
+	}
+
+	/** @return platnosť od vo formáte d. M. yyyy */
+	public String validFromText() {
+		return formatDay(validFrom);
+	}
+
+	/** @return platnosť do vo formáte d. M. yyyy */
+	public String validToText() {
+		return formatDay(validTo);
+	}
+
+	/**
+	 * @param iso dátum yyyy-MM-dd
+	 * @return dátum alebo null, ak je prázdny / neplatný
+	 */
+	public static java.time.LocalDate parseDay(String iso) {
+		if (StringUtils.isBlank(iso)) {
+			return null;
+		}
+		try {
+			return java.time.LocalDate.parse(iso.trim());
+		} catch (java.time.format.DateTimeParseException e) {
+			return null;
+		}
+	}
+
+	private static String formatDay(String iso) {
+		java.time.LocalDate d = parseDay(iso);
+		return d == null ? "" : d.getDayOfMonth() + ". " + d.getMonthValue() + ". " + d.getYear();
 	}
 
 	public Boolean getAnonymous() {
